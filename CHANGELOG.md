@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.5.2] - 2023-01-26
+
+### Added
+
+- Demo animations to the Readme
+
 ## [0.5.1] - 2023-01-26
 
 ### Added

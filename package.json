@@ -5,7 +5,7 @@
   "description": "Tools for Defold to make your life easier and coding in Lua nicer.",
   "publisher": "mikatuo",
   "license": "MIT",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/mikatuo/vscode-defold-ide"
