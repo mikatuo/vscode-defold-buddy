@@ -6,9 +6,9 @@ Tools for Defold to make your life easier and coding experience in Lua nicer.
 
 - [x] IntelliSense
 - [x] Generate app manifest (build a custom engine to reduce game bundle size)
-- [ ] Add project dependencies
-- [ ] Remove project dependencies
-- [ ] Debugger?
+- [ ] TODO: Add project dependencies
+- [ ] TODO: Remove project dependencies
+- [ ] TODO: Debugger?
 
 ### IntelliSense
 
