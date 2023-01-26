@@ -1,0 +1,87 @@
+{
+  "preview": true,
+  "name": "vscode-defold-ide",
+  "displayName": "Defold Buddy",
+  "description": "Tools for Defold to make your life easier and coding in Lua nicer.",
+  "publisher": "mikatuo",
+  "license": "MIT",
+  "version": "0.5.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mikatuo/vscode-defold-ide"
+  },
+  "homepage": "https://marketplace.visualstudio.com/items?itemName=mikatuo.vscode-defold-ide",
+  "bugs": {
+    "url": "https://github.com/mikatuo/vscode-defold-ide/issues"
+  },
+  "icon": "images/logo.png",
+  "galleryBanner": {
+    "color": "#1e2226",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "Defold",
+    "IDE",
+    "Lua"
+  ],
+  "activationEvents": [
+    "onCommand:vscode-defold-ide.initialize",
+    "onCommand:vscode-defold-ide.generateManifest",
+    "workspaceContains:game.project",
+    "workspaceContains:main/main.collection",
+    "workspaceContains:input/game.input_binding"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-defold-ide.initialize",
+        "title": "Defold: Initialize"
+      },
+      {
+        "command": "vscode-defold-ide.generateManifest",
+        "title": "Defold: Generate App Manifest (reduce game bundle size)",
+        "shortTitle": "Defold: Generate App Manifest"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "@vscode/test-electron": "^2.2.0",
+    "esbuild": "^0.17.4",
+    "eslint": "^8.28.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.1.0",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "axios": "^1.2.3",
+    "ini": "^3.0.1"
+  },
+  "extensionDependencies": [
+    "sumneko.lua"
+  ]
+}
