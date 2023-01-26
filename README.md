@@ -1,6 +1,6 @@
-# Defold IDE (Integrated Development Environment)
+# Defold Buddy
 
-Tools for Defold to make your life easier and coding experience in Lua nicer.
+Tools for Defold to make your life a bit easier and coding experience in Lua nicer.
 
 ## Features
 
@@ -12,11 +12,19 @@ Tools for Defold to make your life easier and coding experience in Lua nicer.
 
 ### IntelliSense
 
-TODO: demo
+1. Open you game project folder in VS Code
+2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P`) or go to `View` > `Command Palette`.
+3. Select `Defold: Initialize`
+
+![Code_BNEmUXEepD](https://user-images.githubusercontent.com/7230306/214968246-3454f551-212b-43f5-88b3-23aa8c9811c1.gif)
 
 ### Generate App Manifest
 
-TODO: demo
+1. Open you game project folder in VS Code
+2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P`) or go to `View` > `Command Palette`.
+3. Select `Defold: Generate App Manifest`
+
+![Code_4h7ZjdUFHy](https://user-images.githubusercontent.com/7230306/214969382-6df5462a-82dd-4ffb-9567-89b67c72eeb9.gif)
 
 ---
 
