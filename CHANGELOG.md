@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.5.4] - 2023-01-30
+
+### Fixed
+
+- Bug when generate manifest command was incorectly updating game.project
+
+## [0.5.3] - 2023-01-29
+
+### Fixed
+
+- Add, subtract, multiply, divide operator annotations for vector3, vector4
+- Missing types for "to" parameter in "gui.animate
+- Missing boolean type in go.property
+
 ## [0.5.2] - 2023-01-26
 
 ### Added

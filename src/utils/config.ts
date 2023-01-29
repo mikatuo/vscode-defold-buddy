@@ -26,21 +26,12 @@ export class ConfigInitializer {
 		], { placeHolder: 'Select Defold version of the current project.' });
 		if (selectedVersion) {
 			this.defoldVersion = selectedVersion.label;
-			this.workspaceAnnotationsFolder = '.defold'; // TODO: prompt folder name
+			this.workspaceAnnotationsFolder = '.defold';
 			// TODO: move it outside of the config initializer
 			// TODO: download annotations from Github in a .zip file
 			this.copyDefoldAnnotationsIntoWorkspace();
-			// tell build server to disregard the annotations
-			// otherwise it returns a bunch of errors
-			const defignorePatternsToAdd = ['/.defold','/.idea','/.vscode'];
-			const defignoreContent = await readWorkspaceFile('.defignore');
-			const defignoreLines = defignoreContent && defignoreContent.split(/\r\n|\r|\n/) || [];
-			defignorePatternsToAdd.forEach(pattern => {
-				if (!defignoreLines.includes(pattern)) {
-					defignoreLines.push(pattern);
-				}
-			});
-			await saveWorkspaceFile('.defignore', defignoreLines.join('\n'));
+			await appendLinesIntoFileOrCreateFile(['/.defold', '/.idea', '/.vscode'], '.defignore'); // build server to ignore
+			await appendLinesIntoFileOrCreateFile(['/.defold'], '.gitignore'); // git to ignore
 		}
 		this.initWorkspaceSettingsForDefold();
 	}
@@ -65,7 +56,7 @@ export class ConfigInitializer {
 	private initWorkspaceSettingsForDefold() {
 		const config = vscode.workspace.getConfiguration();
 
-		configureAutocompletion(config);
+		configureEditor(config);
 		if (this.workspaceAnnotationsFolder) {
 			configureIntelliSenseForDefold(config, this.workspaceAnnotationsFolder);
 		}
@@ -73,6 +64,17 @@ export class ConfigInitializer {
 		configureFileAssociations(config);
 		configureSearchExclude(config);
 	}
+}
+
+async function appendLinesIntoFileOrCreateFile(lines: string[], filename: string) {
+	const defignoreContent = await readWorkspaceFile(filename);
+	const defignoreLines = defignoreContent && defignoreContent.split(/\r\n|\r|\n/) || [];
+	lines.forEach(pattern => {
+		if (!defignoreLines.includes(pattern)) {
+			defignoreLines.push(pattern);
+		}
+	});
+	await saveWorkspaceFile(filename, defignoreLines.join('\n'));
 }
 
 async function copyFolder(sourceFolder: string, destFolder: string) {
@@ -89,12 +91,13 @@ async function copyFolder(sourceFolder: string, destFolder: string) {
     }
 }
 
-function configureAutocompletion(config: vscode.WorkspaceConfiguration) {
+function configureEditor(config: vscode.WorkspaceConfiguration) {
 	setConfigValue(config, 'editor.snippetSuggestions', 'bottom');
-	setConfigValue(config, 'Lua.completion.callSnippet', 'Replace');
+	setConfigValue(config, 'editor.suggest.showKeywords', false);
 }
 
 function configureIntelliSenseForDefold(config: vscode.WorkspaceConfiguration, annotationsFolder: string) {
+	setConfigValue(config, 'Lua.completion.callSnippet', 'Replace');
 	setConfigValue(config, 'Lua.runtime.version', 'Lua 5.1');
 	extendConfigArray(config, 'Lua.workspace.library', [annotationsFolder]);
 	// don't show warnings/errors for library files
@@ -182,7 +185,7 @@ function extendConfigArray(config: vscode.WorkspaceConfiguration, section: strin
 	config.update(section, newValues, vscode.ConfigurationTarget.Workspace);
 }
 
-function setConfigValue(config: vscode.WorkspaceConfiguration, section: string, newValue: string) {
+function setConfigValue<TValue>(config: vscode.WorkspaceConfiguration, section: string, newValue: TValue) {
 	config.update(section, newValue, vscode.ConfigurationTarget.Workspace);
 }
 

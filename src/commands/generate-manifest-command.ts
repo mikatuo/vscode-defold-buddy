@@ -14,7 +14,7 @@ export class GenerateManifestCommand extends Command {
 		vscode.window.showInformationMessage('The manifest has been generated.');
 		const config = await GameProjectConfig.fromFile('game.project');
 		config.set({
-			section: 'native_extension',
+			section: '[native_extension]',
 			key: 'app_manifest',
 			value: '/generated.appmanifest',
 		});
