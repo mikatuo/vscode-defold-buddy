@@ -32,8 +32,6 @@
     "Lua"
   ],
   "activationEvents": [
-    "onCommand:vscode-defold-ide.initialize",
-    "onCommand:vscode-defold-ide.generateManifest",
     "workspaceContains:game.project",
     "workspaceContains:main/main.collection",
     "workspaceContains:input/game.input_binding"

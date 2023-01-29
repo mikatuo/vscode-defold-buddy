@@ -65,15 +65,15 @@ function gui.delete_node(node) end
 ---together. See the examples below for more information.
 ---@param node node node to animate
 ---@param property string|constant property to animate  <code>"position"</code>  <code>"rotation"</code>  <code>"scale"</code>  <code>"color"</code>  <code>"outline"</code>  <code>"shadow"</code>  <code>"size"</code>  <code>"fill_angle"</code> (pie)  <code>"inner_radius"</code> (pie)  <code>"slice9"</code> (slice9)  The following property constants are defined equaling the corresponding property string names.  <code>gui.PROP_POSITION</code>  <code>gui.PROP_ROTATION</code>  <code>gui.PROP_SCALE</code>  <code>gui.PROP_COLOR</code>  <code>gui.PROP_OUTLINE</code>  <code>gui.PROP_SHADOW</code>  <code>gui.PROP_SIZE</code>  <code>gui.PROP_FILL_ANGLE</code>  <code>gui.PROP_INNER_RADIUS</code>  <code>gui.PROP_SLICE9</code> 
----@param to vector3|vector4 target property value
+---@param to number|vector3|vector4|quaternion target property value
 ---@param easing constant|vector easing to use during animation.      Either specify one of the <code>gui.EASING_*</code> constants or provide a      vector with a custom curve. See the animation guide for more information.
 ---@param duration number duration of the animation in seconds.
 ---@param delay number|nil delay before the animation starts in seconds.
 ---@param complete_function fun(self, node)|nil function to call when the
 ---@param playback constant|nil playback mode  <code>gui.PLAYBACK_ONCE_FORWARD</code>  <code>gui.PLAYBACK_ONCE_BACKWARD</code>  <code>gui.PLAYBACK_ONCE_PINGPONG</code>  <code>gui.PLAYBACK_LOOP_FORWARD</code>  <code>gui.PLAYBACK_LOOP_BACKWARD</code>  <code>gui.PLAYBACK_LOOP_PINGPONG</code> 
----@overload fun(node: node, property: string|constant, to: vector3|vector4, easing: constant|vector, duration: number)
----@overload fun(node: node, property: string|constant, to: vector3|vector4, easing: constant|vector, duration: number, delay: number|nil)
----@overload fun(node: node, property: string|constant, to: vector3|vector4, easing: constant|vector, duration: number, delay: number|nil, complete_function: fun(self, node)|nil)
+---@overload fun(node: node, property: string|constant, to: number|vector3|vector4|quaternion, easing: constant|vector, duration: number)
+---@overload fun(node: node, property: string|constant, to: number|vector3|vector4|quaternion, easing: constant|vector, duration: number, delay: number|nil)
+---@overload fun(node: node, property: string|constant, to: number|vector3|vector4|quaternion, easing: constant|vector, duration: number, delay: number|nil, complete_function: fun(self, node)|nil)
 function gui.animate(node, property, to, easing, duration, delay, complete_function, playback) end
 
 ---Docs: https://defold.com/ref/stable/gui/?q=gui.cancel_animation#gui.cancel_animation
