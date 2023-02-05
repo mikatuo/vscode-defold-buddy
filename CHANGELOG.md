@@ -1,7 +1,9 @@
 # Change Log
 
 ## [Unreleased]
-- TODO: Add autocomplete demo into the Readme
+
+## [0.6.5] - 2023-02-05
+- `CHG` Update the Readme
 
 ## [0.6.3] - 2023-02-05
 - `ADD` Command to re-index game files for the autocompletion
