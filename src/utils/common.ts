@@ -22,17 +22,37 @@ export async function saveWorkspaceFile(relativePath: string, content: string): 
     }
 }
 
-export async function readWorkspaceFile(relativePath: string): Promise<string | undefined> {
-    const filePath = getWorkspacePath(relativePath);
+export async function readWorkspaceFileBytes(relativePath: string | vscode.Uri): Promise<Uint8Array | undefined> {
+    const filePath = typeof(relativePath) === 'string'
+        ? getWorkspacePath(relativePath)
+        : relativePath;
     if (!filePath) { return undefined; }
 
     try {
         const data = await vscode.workspace.fs.readFile(filePath);
-        return Buffer.from(data).toString('utf8');
+        return data;
     } catch (ex: any) {
         if (ex.code === 'FileNotFound') {
             return undefined;
         }
         throw ex;
+    }
+}
+
+export async function readWorkspaceFile(relativePath: string | vscode.Uri): Promise<string | undefined> {
+    const data = await readWorkspaceFileBytes(relativePath);
+    if (!data) { return undefined; }
+
+    return Buffer.from(data).toString('utf8');
+}
+
+export async function showTextDocument(relativePath: string): Promise<void> {
+    var path = getWorkspacePath(relativePath);
+    if (!path) { return; }
+    try {
+        const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(path);
+        await vscode.window.showTextDocument(doc, { preview: true });
+    } catch (error: any) {
+        console.error('Failed to show text document', error);
     }
 }

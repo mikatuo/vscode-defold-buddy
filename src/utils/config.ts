@@ -19,10 +19,9 @@ export class ConfigInitializer {
 
 	async run() {
 		const selectedVersion = await vscode.window.showQuickPick([
+			{ label: '1.4.2' },
 			{ label: '1.4.1' },
 			{ label: '1.4.0' },
-			{ label: '', kind: vscode.QuickPickItemKind.Separator },
-			{ label: '1.4.2-beta' },
 		], { placeHolder: 'Select Defold version of the current project.' });
 		if (selectedVersion) {
 			this.defoldVersion = selectedVersion.label;
@@ -174,7 +173,7 @@ function configureSearchExclude(config: vscode.WorkspaceConfiguration) {
 	/* eslint-enable @typescript-eslint/naming-convention */
 }
 
-function extendConfigArray(config: vscode.WorkspaceConfiguration, section: string, additions: string[]) {
+function extendConfigArray(config: vscode.WorkspaceConfiguration, section: string, additions: string[], configTarget?: vscode.ConfigurationTarget) {
 	const values = config.get<string[]>(section, []);
 
 	const newValues = [...values];
@@ -182,16 +181,19 @@ function extendConfigArray(config: vscode.WorkspaceConfiguration, section: strin
 		if (newValues.indexOf(newValue) !== -1) { continue; }
 		newValues.push(newValue);
 	}
-	config.update(section, newValues, vscode.ConfigurationTarget.Workspace);
+	const target = configTarget || vscode.ConfigurationTarget.Workspace;
+	config.update(section, newValues, target);
 }
 
-function setConfigValue<TValue>(config: vscode.WorkspaceConfiguration, section: string, newValue: TValue) {
-	config.update(section, newValue, vscode.ConfigurationTarget.Workspace);
+function setConfigValue<TValue>(config: vscode.WorkspaceConfiguration, section: string, newValue: TValue, configTarget?: vscode.ConfigurationTarget) {
+	const target = configTarget || vscode.ConfigurationTarget.Workspace;
+	config.update(section, newValue, target);
 }
 
-function extendConfigObject(config: vscode.WorkspaceConfiguration, section: string, addition: object) {
+function extendConfigObject(config: vscode.WorkspaceConfiguration, section: string, addition: object, configTarget?: vscode.ConfigurationTarget) {
 	const value = config.get(section, {});
 	
 	const newValue = { ...value, ...addition };
-	config.update(section, newValue, vscode.ConfigurationTarget.Workspace);
+	const target = configTarget || vscode.ConfigurationTarget.Workspace;
+	config.update(section, newValue, target);
 }

@@ -216,7 +216,7 @@ function go.delete(id, recursive) end
 ---The properties defined this way are automatically exposed in the editor in game objects and collections which use the script.
 ---Note that you can only use this function outside any callback-functions like init and update.
 ---@param name string the id of the property
----@param value boolean|number|hash|url|vector3|vector4|quaternion|resource default value of the property. In the case of a url, only the empty constructor msg.url() is allowed. In the case of a resource one of the resource constructors (eg resource.atlas(), resource.font() etc) is expected.
+---@param value number|hash|url|vector3|vector4|quaternion|resource default value of the property. In the case of a url, only the empty constructor msg.url() is allowed. In the case of a resource one of the resource constructors (eg resource.atlas(), resource.font() etc) is expected.
 function go.property(name, value) end
 
 ---Docs: https://defold.com/ref/stable/go/?q=init#init
