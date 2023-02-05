@@ -6,34 +6,40 @@ import { DefoldIndex, IDefoldComponent, IDefoldInstance } from '../utils/defold-
 export async function registerUrlCompletionItemProvider(context: vscode.ExtensionContext) {
     const urlCompletion = vscode.languages.registerCompletionItemProvider('lua', {
         provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
-			if (!document.uri.path.endsWith('.script')) { return undefined; }
-            const linePrefix = document.lineAt(position).text.substring(0, position.character);
-			if (!linePrefix.endsWith('"') && !linePrefix.endsWith('"#') && !/"\w+:$/.test(linePrefix)) {
-				return undefined;
-			}
-			
-			const scriptPath = vscode.workspace.asRelativePath(document.uri);
+			if (!showUrlCompletion(document, position)) { return undefined; }
+			const script = vscode.workspace.asRelativePath(document.uri);
 
-			// autocompletion for scripts attached to .go files
-			const goComponents = DefoldIndex.instance.findGameObjectComponents(`/${scriptPath}`);
-			if (goComponents.length) {
-				return goComponents.map(componentCompletionItem);
-			}
-
-			// autocompletion for scripts attached to .collection files
-			const collectionInstances = DefoldIndex.instance.findCollectionInstances(`/${scriptPath}`);
-			if (collectionInstances.length) {
-				const completionItems = collectionInstances.flatMap(instanceCompletionItem);
-				return completionItems;
-			}
-			
-			// the .script is not attached to any .go or .collection files
-			// or we failed to find them
-			return undefined;
+			return completionIfAttachedToGameObject(script)
+				|| completionIfAttachedToCollection(script);
         },
     }, '"', ':');
     
 	context.subscriptions.push(urlCompletion);
+}
+
+function showUrlCompletion(document: vscode.TextDocument, position: vscode.Position): boolean {
+	if (!document.uri.path.endsWith('.script')) {
+		return false;
+	}
+	
+	const linePrefix = document.lineAt(position).text.substring(0, position.character);
+	if (linePrefix.endsWith('"') || !linePrefix.endsWith('"#') || /"\w+:$/.test(linePrefix)) {
+		return true;
+	}
+
+	return false;
+}
+
+function completionIfAttachedToGameObject(scriptPath: string): vscode.CompletionItem[] | undefined {
+	const components = DefoldIndex.instance.findGameObjectComponents(`/${scriptPath}`);
+	if (!components) { return undefined; }
+	return components.map(componentCompletionItem);
+}
+
+function completionIfAttachedToCollection(script: string): vscode.CompletionItem[] | undefined {
+	const instances = DefoldIndex.instance.findCollectionInstances(`/${script}`);
+	if (!instances) { return undefined; }
+	return instances.flatMap(instanceCompletionItem);
 }
 
 function instanceCompletionItem(instance: IDefoldInstance): vscode.CompletionItem[] {
