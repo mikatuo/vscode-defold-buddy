@@ -9,8 +9,14 @@ export async function registerUrlCompletionItemProvider(context: vscode.Extensio
 			if (!showUrlCompletion(document, position)) { return undefined; }
 			const script = vscode.workspace.asRelativePath(document.uri);
 
-			return completionIfAttachedToGameObject(script)
-				|| completionIfAttachedToCollection(script);
+			// TODO: identify if a script is attached to a game object or collection created by a factory
+			// TODO: then if the factory is placed inside a collection then provide completion for that collection
+			const items = completionIfAttachedToGameObject(script).concat(completionIfAttachedToCollection(script));
+			if (items.length) {
+				return items;
+			} else {
+				return undefined;
+			}
         },
     }, '"', ':');
     
@@ -30,15 +36,13 @@ function showUrlCompletion(document: vscode.TextDocument, position: vscode.Posit
 	return false;
 }
 
-function completionIfAttachedToGameObject(scriptPath: string): vscode.CompletionItem[] | undefined {
+function completionIfAttachedToGameObject(scriptPath: string): vscode.CompletionItem[] {
 	const components = DefoldIndex.instance.findGameObjectComponents(`/${scriptPath}`);
-	if (!components) { return undefined; }
 	return components.map(componentCompletionItem);
 }
 
-function completionIfAttachedToCollection(script: string): vscode.CompletionItem[] | undefined {
+function completionIfAttachedToCollection(script: string): vscode.CompletionItem[] {
 	const instances = DefoldIndex.instance.findCollectionInstances(`/${script}`);
-	if (!instances) { return undefined; }
 	return instances.flatMap(instanceCompletionItem);
 }
 

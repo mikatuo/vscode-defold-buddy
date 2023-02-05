@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.6.6] - 2023-02-05
+- `ADD` Better autocompletion for scripts that are attached to a game object that is placed into a collection
+
 ## [0.6.5] - 2023-02-05
 - `CHG` Update the Readme
 
