@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.7.4] - 2023-02-12
+- `ADD` Explorer's context menu item "Create Gui" for a folder to create .gui + .gui_script files with a few clicks
+
+## [0.7.2] - 2023-02-12
+- `ADD` Explorer's context menu item "Create Game Object" for a folder to create .go + .script + .factory files with a few clicks
+
+## [0.6.7] - 2023-02-06
+- `FIX` A bug when URL autocompletion was being triggered everywhere
+
 ## [0.6.6] - 2023-02-05
 - `ADD` Better autocompletion for scripts that are attached to a game object that is placed into a collection
 

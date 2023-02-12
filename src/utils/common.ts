@@ -8,13 +8,15 @@ export function getWorkspacePath(folder: string): vscode.Uri | undefined {
     return vscode.Uri.joinPath(workspaceFolder.uri, folder);
 }
 
-export async function saveWorkspaceFile(relativePath: string, content: string): Promise<boolean> {
-    const workspacePath = getWorkspacePath(relativePath);
-    if (!workspacePath) { return false; }
+export async function saveWorkspaceFile(relativePath: vscode.Uri | string, content: string): Promise<boolean> {
+    const path = typeof(relativePath) === 'string'
+        ? getWorkspacePath(relativePath)
+        : <vscode.Uri>relativePath;
+    if (!path) { return false; }
 
     const data = Buffer.from(content, 'utf8');
     try {
-        await vscode.workspace.fs.writeFile(workspacePath, data);
+        await vscode.workspace.fs.writeFile(path, data);
         return true;
     } catch (ex: any) {
         console.error(`Failed to save the file ${relativePath}. Error: ${ex}`);
@@ -39,16 +41,19 @@ export async function readWorkspaceFileBytes(relativePath: string | vscode.Uri):
     }
 }
 
-export async function readWorkspaceFile(relativePath: string | vscode.Uri): Promise<string | undefined> {
+export async function readWorkspaceFile(relativePath: vscode.Uri | string): Promise<string | undefined> {
     const data = await readWorkspaceFileBytes(relativePath);
     if (!data) { return undefined; }
 
     return Buffer.from(data).toString('utf8');
 }
 
-export async function showTextDocument(relativePath: string): Promise<void> {
-    var path = getWorkspacePath(relativePath);
+export async function showTextDocument(relativePath: vscode.Uri | string): Promise<void> {
+    const path = typeof(relativePath) === 'string'
+        ? getWorkspacePath(relativePath)
+        : <vscode.Uri>relativePath;
     if (!path) { return; }
+    
     try {
         const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(path);
         await vscode.window.showTextDocument(doc, { preview: true });

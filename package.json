@@ -5,7 +5,7 @@
   "description": "Tools for Defold to make your life easier and coding in Lua nicer.",
   "publisher": "mikatuo",
   "license": "MIT",
-  "version": "0.6.6",
+  "version": "0.7.4",
   "repository": {
     "type": "git",
     "url": "https://github.com/mikatuo/vscode-defold-ide"
@@ -23,11 +23,11 @@
     "vscode": "^1.74.0"
   },
   "categories": [
-    "Programming Languages",
     "Other"
   ],
   "keywords": [
     "Defold",
+    "game engine",
     "IDE",
     "Lua"
   ],
@@ -41,22 +41,50 @@
     "commands": [
       {
         "command": "vscode-defold-ide.initialize",
-        "title": "Defold: Initialize"
+        "title": "Initialize",
+        "category": "Defold"
       },
       {
         "command": "vscode-defold-ide.generateManifest",
-        "title": "Defold: Generate manifest (reduce game bundle size)",
-        "shortTitle": "Defold: Generate manifest"
+        "title": "Generate manifest (reduce game bundle size)",
+        "shortTitle": "Generate manifest",
+        "category": "Defold"
       },
       {
         "command": "vscode-defold-ide.generateHashesModule",
-        "title": "Defold: Generate module with hashes (alpha)"
+        "title": "Generate module with hashes (alpha)",
+        "category": "Defold"
       },
       {
         "command": "vscode-defold-ide.indexDefoldFiles",
-        "title": "Defold: Index game files for autocompletion"
+        "title": "Index game files for autocompletion",
+        "category": "Defold"
+      },
+      {
+        "command": "vscode-defold-ide.createGameObject",
+        "title": "Create Game Object",
+        "category": "Defold"
+      },
+      {
+        "command": "vscode-defold-ide.createGui",
+        "title": "Create Gui",
+        "category": "Defold"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "vscode-defold-ide.createGameObject",
+          "group": "2_workspace",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "vscode-defold-ide.createGui",
+          "group": "2_workspace",
+          "when": "explorerResourceIsFolder"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run esbuild-base -- --minify",
@@ -85,6 +113,7 @@
   },
   "dependencies": {
     "axios": "^1.2.3",
+    "node-ssdp": "^4.0.1",
     "protobufjs": "^7.2.0"
   },
   "extensionDependencies": [

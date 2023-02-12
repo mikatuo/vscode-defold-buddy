@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { load } from 'protobufjs';
 import { readWorkspaceFileBytes } from '../utils/common';
 import { DefoldIndex, IDefoldComponent, IDefoldInstance } from '../utils/defold-file-indexer';
 
@@ -9,6 +8,8 @@ export async function registerUrlCompletionItemProvider(context: vscode.Extensio
 			if (!showUrlCompletion(document, position)) { return undefined; }
 			const script = vscode.workspace.asRelativePath(document.uri);
 
+			// TODO: when an autocomplete is selected then add hash at the beginning of the file
+			// TODO: identify collection proxies and provide completion for them
 			// TODO: identify if a script is attached to a game object or collection created by a factory
 			// TODO: then if the factory is placed inside a collection then provide completion for that collection
 			const items = completionIfAttachedToGameObject(script).concat(completionIfAttachedToCollection(script));
@@ -29,7 +30,7 @@ function showUrlCompletion(document: vscode.TextDocument, position: vscode.Posit
 	}
 	
 	const linePrefix = document.lineAt(position).text.substring(0, position.character);
-	if (linePrefix.endsWith('"') || !linePrefix.endsWith('"#') || /"\w+:$/.test(linePrefix)) {
+	if (linePrefix.endsWith('"') || linePrefix.endsWith('"#') || /"\w+:$/.test(linePrefix)) {
 		return true;
 	}
 
@@ -69,34 +70,4 @@ function componentCompletionItem(component: IDefoldComponent): vscode.Completion
 	}, vscode.CompletionItemKind.Text);
 	item.filterText = component.id;
 	return item;
-}
-
-////////////////
-
-async function indexWorkspaceCollections2(context: vscode.ExtensionContext) {
-	const path = vscode.Uri.joinPath(context.extensionUri, 'src', 'completion', 'gameobject.proto');
-	load(path.fsPath, async function(err, root) {
-		if (err) {
-			throw err;
-		}
-		
-		// example code
-		const collectionDescription = root!.lookupType('dmGameObjectDDF.CollectionDesc');
-		
-		// let message = collectionDescription.create({ awesomeField: 'hello' });
-		// console.log(`message = ${JSON.stringify(message)}`);
-		
-		// let buffer = collectionDescription.encode(message).finish();
-		// console.log(`buffer = ${Array.prototype.toString.call(buffer)}`);
-		
-		let collectionData = await readWorkspaceFileBytes('main/test.collection');
-		if (collectionData) {
-			try {
-				let decoded = collectionDescription.decode(collectionData);
-				console.log(`decoded = ${JSON.stringify(decoded)}`);
-			} catch (err) {
-				console.error(err);
-			}
-		}
-	});
 }

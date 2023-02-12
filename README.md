@@ -7,9 +7,8 @@ Tools for Defold to make your life a bit easier and coding experience in Lua nic
 - [x] IntelliSense
 - [x] Autocompletion for Defold urls
 - [x] Generate manifest (reduce game bundle size)
-- [ ] TODO: Add .go + .script + .factory with a single command
-- [ ] TODO: Add .gui + .gui_script with a single command
-- [ ] TODO: Debugger?
+- [x] Create .go + .script + .factory files from Explorer context menu
+- [x] Create .gui + .gui_script files from Explorer context menu
 
 ### IntelliSense
 

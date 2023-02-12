@@ -9,3 +9,13 @@ export abstract class Command {
 
     abstract execute(): void;
 }
+
+export abstract class CommandWithArgs<TInput, TOutput> {
+    context: vscode.ExtensionContext;
+
+    constructor(context: vscode.ExtensionContext) {
+        this.context = context;
+    }
+
+    abstract execute(args: TInput): Promise<TOutput>;
+}

@@ -5,9 +5,9 @@ import { GameProjectConfig } from '../utils/game-project-config';
 
 export class GenerateManifestCommand extends Command {
     async execute() {
-		const settings = await promptUserAboutSettings();
+		const options = await promptUserOptions();
 		
-        const manifestBody = generateManifest(settings);
+        const manifestBody = generateManifest(options);
 		const manifestSaved = await saveWorkspaceFile('generated.appmanifest', manifestBody);
 		if (!manifestSaved) { vscode.window.showErrorMessage('Failed to save the manifest'); }
 
@@ -25,27 +25,31 @@ export class GenerateManifestCommand extends Command {
     }
 }
 
-async function promptUserAboutSettings(): Promise<IManifestSettings> {
+async function promptUserOptions(): Promise<IManifestOptions> {
 	const selectedChoises = await vscode.window.showQuickPick([
-		{ label: 'Exclude Physics 2D', description: 'Remove 2D physics (Box2D)', value: 'physics2d' },
-		{ label: 'Exclude Physics 3D', description: 'Remove 3D physics (Bullet)', value: 'physics3d' },
-		{ label: 'Exclude Record', description: 'Remove the video recording capabilities (Windows, Mac, Linux)', value: 'record' },
-		{ label: 'Exclude Profiler', description: 'Remove the on-screen and web profiler', value: 'profiler' },
-		{ label: 'Exclude Sound', description: '', value: 'sound' },
-		{ label: 'Exclude Input', description: '', value: 'input' },
-		{ label: 'Exclude LiveUpdate', description: '', value: 'liveupdate' },
-		{ label: 'Exclude Basis Universal transcoder', description: '', value: 'basisTranscoder' },
-		{ label: 'Use Android support lib', description: 'Use the old Android support libraries instead of AndroidX', value: 'androidsupport' },
-		{ label: 'Use OpenGL', picked: true, description: '', value: 'opengl' },
-		{ label: 'Use Vulkan', description: 'BETA (Windows, macOS, Linux, Android, iOS)', value: 'vulkan' },
-	], { canPickMany: true, placeHolder: 'Press ENTER once you are ready to proceed' }) || [];
+		{ label: 'Exclude Physics 2D', description: 'Remove 2D physics (Box2D)', prop: 'physics2d' },
+		{ label: 'Exclude Physics 3D', description: 'Remove 3D physics (Bullet)', prop: 'physics3d' },
+		{ label: 'Exclude Record', description: 'Remove the video recording capabilities (Windows, Mac, Linux)', prop: 'record' },
+		{ label: 'Exclude Profiler', description: 'Remove the on-screen and web profiler', prop: 'profiler' },
+		{ label: 'Exclude Sound', description: '', prop: 'sound' },
+		{ label: 'Exclude Input', description: '', prop: 'input' },
+		{ label: 'Exclude LiveUpdate', description: '', prop: 'liveupdate' },
+		{ label: 'Exclude Basis Universal transcoder', description: '', prop: 'basisTranscoder' },
+		{ label: 'Use Android support lib', description: 'Use the old Android support libraries instead of AndroidX', prop: 'androidsupport' },
+		{ label: 'Use OpenGL', picked: true, description: '', prop: 'opengl' },
+		{ label: 'Use Vulkan', description: 'BETA (Windows, macOS, Linux, Android, iOS)', prop: 'vulkan' },
+	], {
+		canPickMany: true,
+		ignoreFocusOut: true,
+		placeHolder: 'Press ENTER once you are ready to proceed',
+	}) || [];
 
-	const selectedSettings = selectedChoises.reduce((settings, choise) => {
-		settings[choise.value] = true;
-		return settings;
-	}, <any>{}) as IManifestSettings;
+	const selectedOptions = selectedChoises.reduce((options, choise) => {
+		options[choise.prop] = true;
+		return options;
+	}, <any>{}) as IManifestOptions;
 
-	const defaultSettings = {
+	const defaultOptions = {
 		physics2d: false,
 		physics3d: false,
 		record: false,
@@ -58,16 +62,15 @@ async function promptUserAboutSettings(): Promise<IManifestSettings> {
 		opengl: true,
 		vulkan: false,
 	};
-
-	const settings = {
-		...defaultSettings,
-		...selectedSettings
+	const options = {
+		...defaultOptions,
+		...selectedOptions
 	};
-	if (!settings.opengl && !settings.vulkan) {
+	if (!options.opengl && !options.vulkan) {
 		// make sure that at least OpenGL is selected
-		settings.opengl = true;
+		options.opengl = true;
 	}
-	return settings;
+	return options;
 }
 
 const libNameLookup: any = {
@@ -90,7 +93,7 @@ const ANDROID = [ 'armv7-android', 'arm64-android' ];
 const MACOS = [ 'x86_64-osx' ];
 const IOS = [ 'armv7-ios', 'arm64-ios', 'x86_64-ios' ];
 
-function generateManifest(settings: IManifestSettings): string {
+function generateManifest(options: IManifestOptions): string {
 	const exclusions: { settings: any, platforms: any } = {
 		settings: [],
 		platforms: [],
@@ -109,61 +112,61 @@ function generateManifest(settings: IManifestSettings): string {
 		};
 	});
 
-	if (settings.physics2d || settings.physics3d) {
-		if (settings.physics2d) {
+	if (options.physics2d || options.physics3d) {
+		if (options.physics2d) {
 			exclusions.settings.push('Physics2D');
 		}
-		if (settings.physics3d) {
+		if (options.physics3d) {
 			exclusions.settings.push('Physics3D');
 		}
 
 		pushExcludedLibs(PLATFORMS, exclusions.platforms, ['physics' ]);
-		if (settings.physics2d && settings.physics3d) {
+		if (options.physics2d && options.physics3d) {
 			pushLibs(PLATFORMS, exclusions.platforms, [ 'physics_null' ]);
 			pushExcludedLibs(PLATFORMS, exclusions.platforms, [ 'LinearMath', 'BulletDynamics', 'BulletCollision', 'Box2D' ]);
 		}
-		else if (settings.physics2d) {
+		else if (options.physics2d) {
 			pushLibs(PLATFORMS, exclusions.platforms, [ 'physics_3d' ]);
 			pushExcludedLibs(PLATFORMS, exclusions.platforms, [ 'Box2D' ]);
 		}
-		else if (settings.physics3d) {
+		else if (options.physics3d) {
 			pushLibs(PLATFORMS, exclusions.platforms, [ 'physics_2d' ]);
 			pushExcludedLibs(PLATFORMS, exclusions.platforms, [ 'LinearMath', 'BulletDynamics', 'BulletCollision' ]);
 		}
 	}
-	if (settings.record) {
+	if (options.record) {
 		exclusions.settings.push('Record');
 		pushExcludedLibs(PLATFORMS, exclusions.platforms, [ 'record', 'vpx' ]);
 		pushLibs(PLATFORMS, exclusions.platforms, [ 'record_null' ]);
 	}
-	if (settings.profiler) {
+	if (options.profiler) {
 		exclusions.settings.push('Profiler');
 		pushLibs(PLATFORMS, exclusions.platforms, [ 'profilerext_null' ]);
 		pushExcludedLibs(PLATFORMS, exclusions.platforms, [ 'profilerext' ]);
 		pushExcludedSymbols(PLATFORMS, exclusions.platforms, [ 'ProfilerExt' ]);
 	}
-	if (settings.sound) {
+	if (options.sound) {
 		exclusions.settings.push('Sound');
 		pushExcludedLibs(PLATFORMS, exclusions.platforms, ['sound', 'tremolo']);
 		pushExcludedSymbols(PLATFORMS, exclusions.platforms, ['DefaultSoundDevice', 'AudioDecoderWav', 'AudioDecoderStbVorbis', 'AudioDecoderTremolo']);
 		pushLibs(PLATFORMS, exclusions.platforms, ['sound_null']);
 	}
-	if (settings.input) {
+	if (options.input) {
 		exclusions.settings.push('Input');
 		pushExcludedLibs(PLATFORMS, exclusions.platforms, ['hid']);
 		pushLibs(PLATFORMS, exclusions.platforms, ['hid_null']);
 	}
-	if (settings.liveupdate) {
+	if (options.liveupdate) {
 		exclusions.settings.push('LiveUpdate');
 		pushExcludedLibs(PLATFORMS, exclusions.platforms, ['liveupdate']);
 		pushLibs(PLATFORMS, exclusions.platforms, ['liveupdate_null']);
 	}
-	if (settings.basisTranscoder) {
+	if (options.basisTranscoder) {
 		exclusions.settings.push('Basis Transcoder');
 		pushExcludedLibs(PLATFORMS, exclusions.platforms, ['graphics_transcoder_basisu', 'basis_transcoder']);
 		pushLibs(PLATFORMS, exclusions.platforms, ['graphics_transcoder_null']);
 	}
-	if (settings.vulkan) {
+	if (options.vulkan) {
 		exclusions.settings.push('Vulkan');
 		pushLibs([ 'x86_64-osx', 'arm64-ios' ], exclusions.platforms, ['graphics_vulkan', 'MoltenVK']);
 		pushLibs(ANDROID, exclusions.platforms, ['graphics_vulkan']);
@@ -173,7 +176,7 @@ function generateManifest(settings: IManifestSettings): string {
 		pushFrameworks([ 'arm64-ios' ], exclusions.platforms, ['Metal', 'QuartzCore']);
 		pushSymbols(PLATFORMS_VULKAN, exclusions.platforms, ['GraphicsAdapterVulkan']);
 	}
-	if (!settings.opengl) {
+	if (!options.opengl) {
 		pushExcludedLibs(PLATFORMS_VULKAN, exclusions.platforms, ['graphics']);
 		pushExcludedSymbols(PLATFORMS_VULKAN, exclusions.platforms, ['GraphicsAdapterOpenGL']);
 	}
@@ -204,7 +207,7 @@ function generateManifest(settings: IManifestSettings): string {
 		}
 		manifest += `${tab}${tab}${tab}linkFlags: [${exclusions.platforms[platform].linkFlags.join()}]${newLine}`;
 		if (isAndroid(platform)) {
-			manifest += `${tab}${tab}${tab}jetifier: ${settings.androidsupport ? 'false' : 'true'}${newLine}`;
+			manifest += `${tab}${tab}${tab}jetifier: ${options.androidsupport ? 'false' : 'true'}${newLine}`;
 		}
 		manifest += `${newLine}`;
 	});
@@ -212,7 +215,7 @@ function generateManifest(settings: IManifestSettings): string {
 	return manifest;
 }
 
-interface IManifestSettings {
+interface IManifestOptions {
 	physics2d: boolean;
 	physics3d: boolean;
 	record: boolean;
