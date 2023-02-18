@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.8.1] - 2023-02-19
+- `ADD` On Windows identify port of a running Defold editor automatically
+
 ## [0.8.0] - 2023-02-18
 - `ADD` Ability to call running Defold editor from VS Code to build the project
 - `ADD` Ask to run the "Initialize" command when opening a project without Lua annotations for Defold API

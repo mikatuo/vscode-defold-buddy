@@ -10,6 +10,7 @@ import { registerCreateGuiCommand } from './commands/create-gui-command';
 import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
 import { registerProjectBuildCommand as registerProjectBuildCommand } from './commands/register-project-build-command';
 import { getWorkspacePath } from './utils/common';
+import { IState } from './utils/config';
 
 // TODO: annotations for Defold to work without copying the files into the project
 //	     ^ currently, there is no way to do that without specifying the absolute path, which I don't like
@@ -19,6 +20,7 @@ import { getWorkspacePath } from './utils/common';
 // TODO: show diagnostic errors for urls? (https://code.visualstudio.com/updates/v1_37#_diagnosticstagdeprecated)
 // TODO: validate requires - show diagnostic errors if the file does not exist
 // TODO: validate urls - show diagnostic errors if the url does not exist
+// TODO: add Sentry or other error reporting tool
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Activation!');
@@ -56,6 +58,7 @@ function registerCommands(context: vscode.ExtensionContext) {
 async function maybeAskToInitializeCurrentProject(context: vscode.ExtensionContext) {
 	const neverAsk = await context.globalState.get<boolean>('neverAskToInitializeCurrentProject', false);
 	if (neverAsk) { return; }
+	if (await alreadyInitialized(context)) { return; }
 	if (await folderExists('.defold')) { return; }
 	
 	vscode.window.showInformationMessage(
@@ -95,6 +98,11 @@ function reIndexDefoldFilesOnChanges() {
 			vscode.commands.executeCommand('vscode-defold-ide.indexDefoldFiles');
 		});
 	}
+}
+
+async function alreadyInitialized(context: vscode.ExtensionContext): Promise<boolean> {
+	const state = await context.workspaceState.get<IState>('defoldApiAnnotations');
+	return !!state;
 }
 
 async function folderExists(relativePath: string): Promise<boolean> {

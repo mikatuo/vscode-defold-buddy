@@ -4,14 +4,16 @@ import path = require('path'); // TODO: use vscode.Uri.joinPath instead?
 import { getWorkspacePath, readWorkspaceFile, saveWorkspaceFile } from './common';
 
 export class ConfigInitializer {
+	context: vscode.ExtensionContext;
 	extension: { id: string; path: string; };
 	defoldVersion: string;
 	workspaceAnnotationsFolder: string;
 
-	constructor(extension: vscode.Extension<any>) {
+	constructor(context: vscode.ExtensionContext) {
+		this.context = context;
 		this.extension = {
-			id: extension.id,
-			path: extension.extensionPath,
+			id: context.extension.id,
+			path: context.extension.extensionPath,
 		};
 		this.defoldVersion = '';
 		this.workspaceAnnotationsFolder = '';
@@ -22,17 +24,28 @@ export class ConfigInitializer {
 			{ label: '1.4.2' },
 			{ label: '1.4.1' },
 			{ label: '1.4.0' },
-		], { placeHolder: 'Select Defold version of the current project.' });
-		if (selectedVersion) {
-			this.defoldVersion = selectedVersion.label;
-			this.workspaceAnnotationsFolder = '.defold';
-			// TODO: move it outside of the config initializer
-			// TODO: download annotations from Github in a .zip file
-			this.copyDefoldAnnotationsIntoWorkspace();
-			await appendLinesIntoFileOrCreateFile(['/.defold', '/.idea', '/.vscode'], '.defignore'); // build server to ignore
-			await appendLinesIntoFileOrCreateFile(['/.defold'], '.gitignore'); // git to ignore
+		], {
+			placeHolder: 'Select Defold version of the current project.',
+			ignoreFocusOut: true,
+		});
+		if (!selectedVersion) {
+			vscode.window.showErrorMessage('Please select version of Defold used for this project.');
+			return;
 		}
+		// copy annotations
+		this.defoldVersion = selectedVersion.label;
+		this.workspaceAnnotationsFolder = '.defold';
+		// TODO: move it outside of the config initializer
+		// TODO: download annotations from Github in a .zip file
+		this.copyDefoldAnnotationsIntoWorkspace();
+		await appendLinesIntoFileOrCreateFile(['/.defold', '/.idea', '/.vscode'], '.defignore'); // build server to ignore
+		await appendLinesIntoFileOrCreateFile(['/.defold'], '.gitignore'); // git to ignore
+		// add recommended workspace settings
 		this.initWorkspaceSettingsForDefold();
+		// save extension's state
+		await this.context.workspaceState.update('defoldApiAnnotations', <IState>{
+			version: selectedVersion.label,
+		});
 	}
 
 	copyDefoldAnnotationsIntoWorkspace() {
@@ -63,6 +76,11 @@ export class ConfigInitializer {
 		configureFileAssociations(config);
 		configureSearchExclude(config);
 	}
+}
+
+// TODO: move to a separate file
+export interface IState {
+	version: string;
 }
 
 async function appendLinesIntoFileOrCreateFile(lines: string[], filename: string) {

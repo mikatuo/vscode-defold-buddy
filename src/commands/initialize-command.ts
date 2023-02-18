@@ -11,7 +11,7 @@ export function registerInitializeCommand(context: vscode.ExtensionContext) {
 
 export class InitializeCommand extends Command {
     async execute() {
-		const initializer = new ConfigInitializer(this.context.extension);
+		const initializer = new ConfigInitializer(this.context);
 		await initializer.run();
 		vscode.window.showInformationMessage('Happy Defolding!');
     }
