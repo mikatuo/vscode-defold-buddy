@@ -48,7 +48,7 @@ export async function readWorkspaceFile(relativePath: vscode.Uri | string): Prom
     return Buffer.from(data).toString('utf8');
 }
 
-export async function showTextDocument(relativePath: vscode.Uri | string): Promise<void> {
+export async function showTextDocument(relativePath: vscode.Uri | string, selection?: vscode.Range): Promise<void> {
     const path = typeof(relativePath) === 'string'
         ? getWorkspacePath(relativePath)
         : <vscode.Uri>relativePath;
@@ -56,7 +56,7 @@ export async function showTextDocument(relativePath: vscode.Uri | string): Promi
     
     try {
         const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(path);
-        await vscode.window.showTextDocument(doc, { preview: true });
+        await vscode.window.showTextDocument(doc, { preview: true, selection: selection });
     } catch (error: any) {
         console.error('Failed to show text document', error);
     }

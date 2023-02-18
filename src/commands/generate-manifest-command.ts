@@ -3,6 +3,13 @@ import { Command } from './command';
 import { saveWorkspaceFile } from '../utils/common';
 import { GameProjectConfig } from '../utils/game-project-config';
 
+export function registerGenerateManifestCommand(context: vscode.ExtensionContext) {
+	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.generateManifest', async () => {
+		const cmd = new GenerateManifestCommand(context);
+		await cmd.execute();
+	}));
+}
+
 export class GenerateManifestCommand extends Command {
     async execute() {
 		const options = await promptUserOptions();

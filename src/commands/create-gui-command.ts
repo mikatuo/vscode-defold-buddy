@@ -99,7 +99,7 @@ class CreateGuiCommand extends CommandWithArgs<IInput, IOutput> {
         return lines;
     }
 
-    relativePath(filename: string) {
+    private relativePath(filename: string) {
         const relativeFolder = vscode.workspace.asRelativePath(this.absoluteFolder);
         return `/${relativeFolder}/${filename}`;
     }

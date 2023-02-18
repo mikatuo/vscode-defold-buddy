@@ -3,7 +3,14 @@ import { saveWorkspaceFile, showTextDocument } from "../utils/common";
 import { DefoldFileIndexer, DefoldIndex, IDefoldComponent } from "../utils/defold-file-indexer";
 import { Command } from "./command";
 
-export class GenerateHashesModule extends Command {
+export function registerGenerateHashesModuleCommand(context: vscode.ExtensionContext) {
+	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.generateHashesModule', async () => {
+		const cmd = new GenerateHashesModuleCommand(context);
+		await cmd.execute();
+	}));
+}
+
+export class GenerateHashesModuleCommand extends Command {
     private lines: string[] = [];
     
     async execute() {

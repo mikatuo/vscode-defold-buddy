@@ -1,28 +1,29 @@
 import * as vscode from 'vscode';
-import { InitializeCommand } from './commands/initialize-command';
-import { GenerateManifestCommand } from './commands/generate-manifest-command';
+import { registerInitializeCommand } from './commands/initialize-command';
+import { registerGenerateManifestCommand } from './commands/generate-manifest-command';
 import { registerUrlCompletionItemProvider } from './completion/url-completion-provider';
-import { GenerateHashesModule } from './commands/generate-hashes-module';
-import { IndexDefoldFiles } from './commands/index-defold-files';
+import { registerGenerateHashesModuleCommand } from './commands/generate-hashes-module';
+import { registerIndexDefoldFilesCommand } from './commands/index-defold-files-command';
 import { registerReloadGameCommand } from './wip/reloadGameCommand';
 import { registerCreateGameObjectCommand } from './commands/create-game-object-command';
 import { registerCreateGuiCommand } from './commands/create-gui-command';
+import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
+import { registerProjectBuildCommand as registerProjectBuildCommand } from './commands/register-project-build-command';
+import { getWorkspacePath } from './utils/common';
 
-// TODO:
-// 1. set path to the virtual environments directory for Defold annotations
-//    in user settings
-// 2. when "initialize" is called only specify version in the config, do not copy the files
-
+// TODO: annotations for Defold to work without copying the files into the project
+//	     ^ currently, there is no way to do that without specifying the absolute path, which I don't like
 // TODO: annotations for extensions
-// TODO: create new Lua modules with #if .. for hot reloading
 // TODO: decorate vector4 with color icon
-// TODO: debugger -> while running show spawned instances?
+// TODO: debugger
 // TODO: show diagnostic errors for urls? (https://code.visualstudio.com/updates/v1_37#_diagnosticstagdeprecated)
 // TODO: validate requires - show diagnostic errors if the file does not exist
 // TODO: validate urls - show diagnostic errors if the url does not exist
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Activation!');
+
+	maybeAskToInitializeCurrentProject(context);
 
 	registerCommands(context);
 	registerUrlCompletionItemProvider(context);
@@ -40,30 +41,34 @@ export function deactivate() {}
 //////////////////
 
 function registerCommands(context: vscode.ExtensionContext) {
-	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.initialize', async () => {
-		const cmd = new InitializeCommand(context);
-		await cmd.execute();
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.generateManifest', async () => {
-		const cmd = new GenerateManifestCommand(context);
-		await cmd.execute();
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.generateHashesModule', async () => {
-		const cmd = new GenerateHashesModule(context);
-		await cmd.execute();
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.indexDefoldFiles', async () => {
-		const cmd = new IndexDefoldFiles(context);
-		await cmd.execute();
-	}));
-
+	registerInitializeCommand(context);
+	registerGenerateManifestCommand(context);
+	registerGenerateHashesModuleCommand(context);
+	registerIndexDefoldFilesCommand(context);
 	registerCreateGameObjectCommand(context);
 	registerCreateGuiCommand(context);
-
+	registerCreateLuaModuleCommand(context);
+	// editor commands
+	registerProjectBuildCommand(context);
 	//registerReloadGameCommand(context);
+}
+
+async function maybeAskToInitializeCurrentProject(context: vscode.ExtensionContext) {
+	const neverAsk = await context.globalState.get<boolean>('neverAskToInitializeCurrentProject', false);
+	if (neverAsk) { return; }
+	if (await folderExists('.defold')) { return; }
+	
+	vscode.window.showInformationMessage(
+		'Add Lua annotations for Defold and recommended settings for VS Code?',
+		'Apply', 'Remind me later', 'Never ask again'
+	).then(async selection => {
+		if (selection === 'Apply') {
+			vscode.commands.executeCommand('vscode-defold-ide.initialize');
+		}
+		if (selection === 'Never ask again') {
+			await context.globalState.update('neverAskToInitializeCurrentProject', true);
+		}
+	});
 }
 
 function registerUrlReferenceProvider() {
@@ -89,5 +94,15 @@ function reIndexDefoldFilesOnChanges() {
 		watcher.onDidDelete(() => {
 			vscode.commands.executeCommand('vscode-defold-ide.indexDefoldFiles');
 		});
+	}
+}
+
+async function folderExists(relativePath: string): Promise<boolean> {
+	const path = await getWorkspacePath(relativePath);
+	try {
+		const stats = await vscode.workspace.fs.stat(path!);
+		return stats.type === vscode.FileType.Directory;
+	} catch (ex: any) {
+		return false;
 	}
 }

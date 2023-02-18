@@ -1,11 +1,10 @@
 {
-  "preview": true,
   "name": "vscode-defold-ide",
   "displayName": "Defold Buddy",
   "description": "Tools for Defold to make your life easier and coding in Lua nicer.",
   "publisher": "mikatuo",
   "license": "MIT",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/mikatuo/vscode-defold-ide"
@@ -69,6 +68,16 @@
         "command": "vscode-defold-ide.createGui",
         "title": "Create Gui",
         "category": "Defold"
+      },
+      {
+        "command": "vscode-defold-ide.createLuaModule",
+        "title": "Create Lua Module",
+        "category": "Defold"
+      },
+      {
+        "command": "vscode-defold-ide.projectBuild",
+        "title": "Project > Build",
+        "category": "Defold"
       }
     ],
     "menus": {
@@ -80,6 +89,11 @@
         },
         {
           "command": "vscode-defold-ide.createGui",
+          "group": "2_workspace",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "vscode-defold-ide.createLuaModule",
           "group": "2_workspace",
           "when": "explorerResourceIsFolder"
         }

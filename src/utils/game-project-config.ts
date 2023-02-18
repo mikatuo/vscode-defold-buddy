@@ -18,6 +18,24 @@ export class GameProjectConfig {
         return project;
     }
 
+    get({ section: sectionName }: { section: string }): IValue[] | [] {
+        const section = this.findSection(sectionName);
+        if (!section) {
+            return [];
+        }
+
+        return section.values;
+    }
+
+    isExtensionInstalled(extensionName: string): boolean {
+        const projectSection = this.findSection('[project]');
+        if (!projectSection) {
+            return false;
+        }
+
+        return projectSection.values.some(x => x.key.startsWith('dependencies') && x.value.includes(`/${extensionName}/`));
+    }
+
     set({ section: sectionName, key, value }: { section: string, key: string, value: string }) {
         const existingSection = this.findSection(sectionName);
         

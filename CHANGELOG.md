@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2023-02-18
+- `ADD` Ability to call running Defold editor from VS Code to build the project
+- `ADD` Ask to run the "Initialize" command when opening a project without Lua annotations for Defold API
+
 ## [0.7.4] - 2023-02-12
 - `ADD` Explorer's context menu item "Create Gui" for a folder to create .gui + .gui_script files with a few clicks
 
