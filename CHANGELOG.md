@@ -2,11 +2,11 @@
 
 ## [Unreleased]
 
-## [0.8.2] - 2023-02-19
-- `ADD` On Linux and Mac identify port of a running Defold editor automatically
+## [0.8.3] - 2023-02-19
+- `CHG` Better UX on Linux and Mac when running "Project > Build" command
 
 ## [0.8.1] - 2023-02-19
-- `ADD` On Windows identify port of a running Defold editor automatically
+- `CHG` Better UX on Windows when running "Project > Build" command
 
 ## [0.8.0] - 2023-02-18
 - `ADD` Ability to call running Defold editor from VS Code to build the project
