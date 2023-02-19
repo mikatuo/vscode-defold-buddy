@@ -3,24 +3,33 @@ import path = require('path');
 
 export class DefoldEditorLogsRepository {
     async findRecentLogFile(): Promise<string | undefined> {
-		// get the path to OS specific user data folder
-		const osSpecificUserDataFolder = process.env.LOCALAPPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share");
-		console.log(osSpecificUserDataFolder);
+        try {
+            const logFolder = getLogFolder('Defold');
 
-        // if windows
-        if (process.platform === 'win32') {
-            const appDataDefoldFolder = `${osSpecificUserDataFolder}\\Defold\\`;
-            const logFilenames = (await fs.readdir(appDataDefoldFolder))
-                // TODO: pass today and yesterday as parameter
+            const recentLogFilenames = (await fs.readdir(logFolder))
                 .filter(createdAt(todayOrYesterday()))
                 .sort().reverse();
-            if (!logFilenames.length) { return undefined; }
+            if (!recentLogFilenames.length) { return undefined; }
             
-            const recentLogFilename = logFilenames[0];
-            return path.join(appDataDefoldFolder, recentLogFilename);
+            const recentLogFilename = recentLogFilenames[0];
+            return path.join(logFolder, recentLogFilename);
+        } catch (error) {
+            return undefined;
         }
-        return undefined;
     }
+}
+
+function getLogFolder(applicationName: string) {
+    // windows
+    if (process.platform === 'win32') {
+        return path.join(process.env.LOCALAPPDATA!, applicationName);
+    }
+    // mac
+    if (process.platform === 'darwin') {
+        return path.join(process.env.HOME!, 'Library', 'Application Support', applicationName);
+    }
+    // linux
+    return path.join(process.env.HOME!, `.${applicationName}`);
 }
 
 function todayOrYesterday(): string[] {

@@ -10,15 +10,21 @@ const command = 'build';
 
 export function registerProjectBuildCommand(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.projectBuild', async () => {
-		let editorPort = await getSavedPortOfRunningEditor(context)
-			|| await tryToFindEditorPortFromLogFiles()
-			|| await askUserForPort(context);
-		await savePort(context, editorPort);
+		vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Building...',
+            cancellable: false,
+        }, async (progress, token) => {
+            let editorPort = await getSavedPortOfRunningEditor(context)
+				|| await tryToFindEditorPortFromLogFiles()
+				|| await askUserForPort(context);
+			await savePort(context, editorPort);
 
-		if (!editorPort) { return vscode.window.showInformationMessage(`No Defold Editor's port provided. Failed to execute ${command} command.`); }
-		if (!isDefoldEditorRunning(editorPort)) { vscode.window.showErrorMessage(`Failed to find running Defold editor with port ${editorPort}. Please try again.`); }
-		
-		await executeCommandInDefoldEditor(editorPort, command);
+			if (!editorPort) { return vscode.window.showInformationMessage(`No Defold Editor's port provided. Failed to execute ${command} command.`); }
+			if (!isDefoldEditorRunning(editorPort)) { vscode.window.showErrorMessage(`Failed to find running Defold editor with port ${editorPort}. Please try again.`); }
+			
+			await executeCommandInDefoldEditor(editorPort, command);
+        });
 	}));
 };
 
@@ -45,12 +51,11 @@ async function getSavedPortOfRunningEditor(context: vscode.ExtensionContext): Pr
 async function tryToFindEditorPortFromLogFiles(): Promise<string | undefined> {
 	const repo = new DefoldEditorLogsRepository();
 	const recentLogFile = await repo.findRecentLogFile();
-	if (!recentLogFile) { return undefined; }
+	if (!recentLogFile) { return undefined; } // failed to find the recent log file
 
 	const foundPorts = await extractEditorPortsFrom(recentLogFile);
 	
-	// extract port from recent log files and see if any of the editors
-	// are still running
+	// find the running editor that was started the most recently
 	for await (const port of foundPorts) {
 		if (await isDefoldEditorRunning(port)) {
 			return port;
