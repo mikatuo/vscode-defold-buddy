@@ -4,27 +4,42 @@ import { promises as fs } from 'fs';
 const readline = require('node:readline');
 const { once } = require('node:events');
 import { DefoldEditorLogsRepository } from '../utils/defold-editor-logs-repository';
+import { openDefoldEditor } from '../utils/common';
 
 const editorBaseUrl = 'http://localhost';
 const command = 'build';
 
 export function registerProjectBuildCommand(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.projectBuild', async () => {
-		vscode.window.withProgress({
+		let success = false;
+		await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'Building...',
             cancellable: false,
         }, async (progress, token) => {
             let editorPort = await getSavedPortOfRunningEditor(context)
-				|| await tryToFindEditorPortFromLogFiles()
-				|| await askUserForPort(context);
+				|| await tryToFindEditorPortFromLogFiles();
 			await savePort(context, editorPort);
 
-			if (!editorPort) { return vscode.window.showInformationMessage(`No Defold Editor's port provided. Failed to execute ${command} command.`); }
-			if (!isDefoldEditorRunning(editorPort)) { vscode.window.showErrorMessage(`Failed to find running Defold editor with port ${editorPort}. Please try again.`); }
-			
-			await executeCommandInDefoldEditor(editorPort, command);
+			// TODO: if called the second time then ask the user for the port
+
+			if (editorPort && await isDefoldEditorRunning(editorPort)) {
+				await executeCommandInDefoldEditor(editorPort!, command);
+				success = true;
+			}
         });
+
+		if (success) { return; }
+
+		if (process.platform === 'win32') {
+			try {
+				maybeOpenDefoldEditor();
+			} catch {
+				vscode.window.showErrorMessage('Failed to start Defold editor. Please start it and try again.');
+			}
+		} else {
+			vscode.window.showErrorMessage('Failed to find a running Defold editor. Please start it and try again.');
+		}
 	}));
 };
 
@@ -111,4 +126,15 @@ async function extractEditorPortsFrom(logFile: string): Promise<string[]> {
 
 	// return the most recent ports at the beginning of the array
 	return result.reverse();
+}
+
+function maybeOpenDefoldEditor() {
+	vscode.window.showInformationMessage(
+		`A Defold editor is not found.`,
+		'Open Defold', 'Cancel'
+	).then(async answer => {
+		if (answer === 'Open Defold') {
+			await openDefoldEditor('game.project');
+		}
+	});
 }

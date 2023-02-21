@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.8.5] - 2023-02-20
+- `CHG` When "Project > Build" can't find a Defold editor, it will ask to open one
+
 ## [0.8.3] - 2023-02-19
 - `CHG` Better UX on Linux and Mac when running "Project > Build" command
 

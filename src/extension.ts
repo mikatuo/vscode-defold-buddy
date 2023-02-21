@@ -25,11 +25,11 @@ import { IState } from './utils/config';
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Activation!');
 
-	maybeAskToInitializeCurrentProject(context);
-
 	registerCommands(context);
 	registerUrlCompletionItemProvider(context);
 	registerUrlReferenceProvider();
+
+	maybeAskToInitializeCurrentProject(context);
 
 	// index game files for autocompletion
 	vscode.commands.executeCommand('vscode-defold-ide.indexDefoldFiles');
@@ -64,11 +64,11 @@ async function maybeAskToInitializeCurrentProject(context: vscode.ExtensionConte
 	vscode.window.showInformationMessage(
 		'Add Lua annotations for Defold and recommended settings for VS Code?',
 		'Apply', 'Remind me later', 'Never ask again'
-	).then(async selection => {
-		if (selection === 'Apply') {
+	).then(async answer => {
+		if (answer === 'Apply') {
 			vscode.commands.executeCommand('vscode-defold-ide.initialize');
 		}
-		if (selection === 'Never ask again') {
+		if (answer === 'Never ask again') {
 			await context.globalState.update('neverAskToInitializeCurrentProject', true);
 		}
 	});

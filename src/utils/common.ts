@@ -61,3 +61,21 @@ export async function showTextDocument(relativePath: vscode.Uri | string, select
         console.error('Failed to show text document', error);
     }
 }
+
+import { exec, spawn, fork, execFile } from 'child_process';
+export async function openDefoldEditor(relativePath: string) {
+    const absolutePath = await getWorkspacePath(relativePath);
+    // TODO: it would be better to use 'spawn' or 'fork' but
+    // for that we need to know path to the executable
+    exec(`"${absolutePath?.fsPath!}"`, (error: any, stdout: any, stderr: any) => {
+        if (error) {
+            console.log(`error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+    });
+}
