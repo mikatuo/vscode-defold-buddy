@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ConfigInitializer } from '../utils/config';
+import { ConfigInitializer } from '../utils/config-initializer';
 import { Command } from './command';
 
 export function registerInitializeCommand(context: vscode.ExtensionContext) {

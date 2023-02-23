@@ -10,11 +10,14 @@ import { registerCreateGuiCommand } from './commands/create-gui-command';
 import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
 import { registerProjectBuildCommand as registerProjectBuildCommand } from './commands/register-project-build-command';
 import { getWorkspacePath } from './utils/common';
-import { IState } from './utils/config';
+import { registerUnzipProjectAssetsCommand } from './commands/extract-project-dependencies-command';
+import { StateMemento } from './persistence/state-memento';
+import { constants } from './constants';
+
+// TODO: do not show URL suggestions for "require"
 
 // TODO: annotations for Defold to work without copying the files into the project
 //	     ^ currently, there is no way to do that without specifying the absolute path, which I don't like
-// TODO: annotations for extensions
 // TODO: decorate vector4 with color icon
 // TODO: debugger
 // TODO: show diagnostic errors for urls? (https://code.visualstudio.com/updates/v1_37#_diagnosticstagdeprecated)
@@ -28,11 +31,13 @@ export function activate(context: vscode.ExtensionContext) {
 	registerCommands(context);
 	registerUrlCompletionItemProvider(context);
 	registerUrlReferenceProvider();
+	intellisenseForProjectDependencies(context);
 
 	maybeAskToInitializeCurrentProject(context);
 
 	// index game files for autocompletion
 	vscode.commands.executeCommand('vscode-defold-ide.indexDefoldFiles');
+	
 
 	// TODO: EXPERIMENTAL - register file watchers
 	//reIndexDefoldFilesOnChanges();
@@ -55,11 +60,27 @@ function registerCommands(context: vscode.ExtensionContext) {
 	//registerReloadGameCommand(context);
 }
 
+function intellisenseForProjectDependencies(context: vscode.ExtensionContext) {
+	// TODO: known issue is that assets are not reloaded when they are removed from Defold editor,
+	// because they are removed from game.project but the actual .zip files are not deleted
+	// TODO: when either '.internal' or '.internal/lib' folder is deleted the assets are not reloaded
+	// possible fix could be to watch for the folder changes
+	registerUnzipProjectAssetsCommand(context);
+	updateAssetsWhenAssetArchivesChange();
+	updateAssetsOnce();
+}
+
 async function maybeAskToInitializeCurrentProject(context: vscode.ExtensionContext) {
 	const neverAsk = await context.globalState.get<boolean>('neverAskToInitializeCurrentProject', false);
 	if (neverAsk) { return; }
 	if (await alreadyInitialized(context)) { return; }
-	if (await folderExists('.defold')) { return; }
+	if (await folderExists('.defold')) {
+		await StateMemento.save(context, {
+			version: 'unknown',
+			assets: [],
+		});
+		return;
+	}
 	
 	vscode.window.showInformationMessage(
 		'Add Lua annotations for Defold and recommended settings for VS Code?',
@@ -101,7 +122,7 @@ function reIndexDefoldFilesOnChanges() {
 }
 
 async function alreadyInitialized(context: vscode.ExtensionContext): Promise<boolean> {
-	const state = await context.workspaceState.get<IState>('defoldApiAnnotations');
+	const state = await StateMemento.load(context);
 	return !!state;
 }
 
@@ -113,4 +134,26 @@ async function folderExists(relativePath: string): Promise<boolean> {
 	} catch (ex: any) {
 		return false;
 	}
+}
+
+// TODO: move into a separate file
+let updatingAssets = false;
+function updateAssetsWhenAssetArchivesChange() {
+	const folder = getWorkspacePath(constants.assetsInternalFolder);
+	if (folder) {
+		const pattern = new vscode.RelativePattern(folder, '**/*.zip');
+		const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+		watcher.onDidChange(updateAssetsOnce);
+		watcher.onDidCreate(updateAssetsOnce);
+		watcher.onDidDelete(updateAssetsOnce);
+	}
+}
+
+async function updateAssetsOnce() {
+	if (updatingAssets) {
+		return;
+	}
+	updatingAssets = true;
+	await vscode.commands.executeCommand('vscode-defold-ide.unzipDependencies');
+	updatingAssets = false;
 }

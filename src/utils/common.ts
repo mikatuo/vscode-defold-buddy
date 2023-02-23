@@ -24,6 +24,17 @@ export async function saveWorkspaceFile(relativePath: vscode.Uri | string, conte
     }
 }
 
+export async function safelyDeleteFolder(relativePath: string, options?: { recursive?: boolean; useTrash?: boolean }) {
+    const path = getWorkspacePath(relativePath);
+    if (!path) { return; }
+
+    try {
+        await vscode.workspace.fs.delete(path, options);
+    } catch (ex: any) {
+        // ignore
+    }
+}
+
 export async function readWorkspaceFileBytes(relativePath: string | vscode.Uri): Promise<Uint8Array | undefined> {
     const filePath = typeof(relativePath) === 'string'
         ? getWorkspacePath(relativePath)
@@ -78,4 +89,40 @@ export async function openDefoldEditor(relativePath: string) {
         }
         console.log(`stdout: ${stdout}`);
     });
+}
+
+export async function extendConfigArray(config: vscode.WorkspaceConfiguration, section: string, additions: string[], configTarget?: vscode.ConfigurationTarget) {
+	const values = config.get<string[]>(section, []);
+
+	const newValues = [...values];
+	for (const newValue of additions) {
+		if (newValues.indexOf(newValue) !== -1) { continue; }
+		newValues.push(newValue);
+	}
+	const target = configTarget || vscode.ConfigurationTarget.Workspace;
+	await config.update(section, newValues, target);
+}
+
+export async function removeFromConfigArray(config: vscode.WorkspaceConfiguration, section: string, valueToRemove: string, configTarget?: vscode.ConfigurationTarget) {
+    const values = config.get<string[]>(section, []);
+
+    const indexOf = values.indexOf(valueToRemove);
+    if (indexOf === -1) { return; }
+    
+    values.splice(indexOf, 1);
+    const target = configTarget || vscode.ConfigurationTarget.Workspace;
+	await config.update(section, values, target);
+}
+
+export async function setConfigValue<TValue>(config: vscode.WorkspaceConfiguration, section: string, newValue: TValue, configTarget?: vscode.ConfigurationTarget) {
+	const target = configTarget || vscode.ConfigurationTarget.Workspace;
+	await config.update(section, newValue, target);
+}
+
+export async function extendConfigObject(config: vscode.WorkspaceConfiguration, section: string, addition: object, configTarget?: vscode.ConfigurationTarget) {
+	const value = config.get(section, {});
+	
+	const newValue = { ...value, ...addition };
+	const target = configTarget || vscode.ConfigurationTarget.Workspace;
+	await config.update(section, newValue, target);
 }

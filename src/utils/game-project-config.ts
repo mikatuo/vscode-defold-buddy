@@ -3,18 +3,21 @@ import { readWorkspaceFile, saveWorkspaceFile } from './common';
 export class GameProjectConfig {
     private filename!: string;
     private sections!: ISection[];
-    
-    static async fromFile(filename: string): Promise<GameProjectConfig> {
-        const project = new GameProjectConfig();
 
+    static async fromFile(filename: string): Promise<GameProjectConfig> {
         const fileContent = await readWorkspaceFile(filename);
         if (!fileContent) {
             throw new Error(`Failed to read project settings from the ${filename} file`);
         }
-        
-        project.filename = filename;
-        project.sections = parseIni(fileContent);
 
+        const project = this.fromString(fileContent);
+        project.filename = filename;
+        return project;
+    }
+    
+    static fromString(content: string): GameProjectConfig {
+        const project = new GameProjectConfig();
+        project.sections = parseIni(content);
         return project;
     }
 

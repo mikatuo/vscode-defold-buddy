@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.8.6] - 2023-02-24
+- `ADD` Unzip project dependencies into `/.defold/lib` folder so that they could be picked up by the Lua extension for intellisense
+
 ## [0.8.5] - 2023-02-20
 - `CHG` When "Project > Build" can't find a Defold editor, it will ask to open one
 

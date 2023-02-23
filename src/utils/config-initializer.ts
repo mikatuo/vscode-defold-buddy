@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import { promises as fs } from 'fs';
 import path = require('path'); // TODO: use vscode.Uri.joinPath instead?
-import { getWorkspacePath, readWorkspaceFile, saveWorkspaceFile } from './common';
+import { extendConfigArray, extendConfigObject, getWorkspacePath, readWorkspaceFile, saveWorkspaceFile, setConfigValue } from './common';
+import { StateMemento } from '../persistence/state-memento';
+import { config } from '../config';
 
 export class ConfigInitializer {
 	context: vscode.ExtensionContext;
@@ -34,17 +36,18 @@ export class ConfigInitializer {
 		}
 		// copy annotations
 		this.defoldVersion = selectedVersion.label;
-		this.workspaceAnnotationsFolder = '.defold';
+		this.workspaceAnnotationsFolder = config.defoldAnnotationsFolder;
 		// TODO: move it outside of the config initializer
 		// TODO: download annotations from Github in a .zip file
 		this.copyDefoldAnnotationsIntoWorkspace();
-		await appendLinesIntoFileOrCreateFile(['/.defold', '/.idea', '/.vscode'], '.defignore'); // build server to ignore
-		await appendLinesIntoFileOrCreateFile(['/.defold'], '.gitignore'); // git to ignore
+		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`, '/.idea', '/.vscode'], '.defignore'); // build server to ignore
+		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`], '.gitignore'); // git to ignore
 		// add recommended workspace settings
-		this.initWorkspaceSettingsForDefold();
-		// save extension's state
-		await this.context.workspaceState.update('defoldApiAnnotations', <IState>{
+		await this.initWorkspaceSettingsForDefold();
+		// save extension state
+		await StateMemento.save(this.context, {
 			version: selectedVersion.label,
+			assets: [],
 		});
 	}
 
@@ -65,22 +68,17 @@ export class ConfigInitializer {
 		return path.join(this.extension.path, folder);
 	}
 
-	private initWorkspaceSettingsForDefold() {
+	private async initWorkspaceSettingsForDefold() {
 		const config = vscode.workspace.getConfiguration();
 
-		configureEditor(config);
+		await configureEditor(config);
 		if (this.workspaceAnnotationsFolder) {
-			configureIntelliSenseForDefold(config, this.workspaceAnnotationsFolder);
+			await configureIntelliSenseForDefold(config, this.workspaceAnnotationsFolder);
 		}
-		configureGlobalFunctions(config);
-		configureFileAssociations(config);
-		configureSearchExclude(config);
+		await configureGlobalFunctions(config);
+		await configureFileAssociations(config);
+		await configureSearchExclude(config);
 	}
-}
-
-// TODO: move to a separate file
-export interface IState {
-	version: string;
 }
 
 async function appendLinesIntoFileOrCreateFile(lines: string[], filename: string) {
@@ -108,23 +106,23 @@ async function copyFolder(sourceFolder: string, destFolder: string) {
     }
 }
 
-function configureEditor(config: vscode.WorkspaceConfiguration) {
-	setConfigValue(config, 'editor.snippetSuggestions', 'bottom');
-	setConfigValue(config, 'editor.suggest.showKeywords', false);
+async function configureEditor(config: vscode.WorkspaceConfiguration) {
+	await setConfigValue(config, 'editor.snippetSuggestions', 'bottom');
+	await setConfigValue(config, 'editor.suggest.showKeywords', false);
 }
 
-function configureIntelliSenseForDefold(config: vscode.WorkspaceConfiguration, annotationsFolder: string) {
-	setConfigValue(config, 'Lua.completion.callSnippet', 'Replace');
-	setConfigValue(config, 'Lua.runtime.version', 'Lua 5.1');
-	extendConfigArray(config, 'Lua.workspace.library', [annotationsFolder]);
+async function configureIntelliSenseForDefold(config: vscode.WorkspaceConfiguration, annotationsFolder: string) {
+	await setConfigValue(config, 'Lua.completion.callSnippet', 'Replace');
+	await setConfigValue(config, 'Lua.runtime.version', 'Lua 5.1');
+	await extendConfigArray(config, 'Lua.workspace.library', [annotationsFolder]);
 	// don't show warnings/errors for library files
-	setConfigValue(config, 'Lua.diagnostics.libraryFiles', 'Disable');
-	extendConfigArray(config, 'Lua.workspace.ignoreDir', [annotationsFolder]);
-	setConfigValue(config, 'Lua.diagnostics.ignoredFiles', 'Disable');
+	await setConfigValue(config, 'Lua.diagnostics.libraryFiles', 'Disable');
+	await extendConfigArray(config, 'Lua.workspace.ignoreDir', [annotationsFolder]);
+	await setConfigValue(config, 'Lua.diagnostics.ignoredFiles', 'Disable');
 }
 
-function configureGlobalFunctions(config: vscode.WorkspaceConfiguration) {
-	extendConfigArray(config, 'Lua.diagnostics.globals', [
+async function configureGlobalFunctions(config: vscode.WorkspaceConfiguration) {
+	await extendConfigArray(config, 'Lua.diagnostics.globals', [
 		'init',
 		'final',
 		'update',
@@ -135,9 +133,9 @@ function configureGlobalFunctions(config: vscode.WorkspaceConfiguration) {
 	]);
 }
 
-function configureFileAssociations(config: vscode.WorkspaceConfiguration) {
+async function configureFileAssociations(config: vscode.WorkspaceConfiguration) {
 	/* eslint-disable @typescript-eslint/naming-convention */
-	extendConfigObject(config, 'files.associations', {
+	await extendConfigObject(config, 'files.associations', {
 		'*.script': 'lua',
 		'*.gui_script': 'lua',
 		'*.render_script': 'lua',
@@ -178,40 +176,15 @@ function configureFileAssociations(config: vscode.WorkspaceConfiguration) {
 	/* eslint-enable @typescript-eslint/naming-convention */
 }
 
-function configureSearchExclude(config: vscode.WorkspaceConfiguration) {
+async function configureSearchExclude(config: vscode.WorkspaceConfiguration) {
 	/* eslint-disable @typescript-eslint/naming-convention */
-	extendConfigObject(config, 'search.exclude', {
-		".defold/**": true,
-		"**/build/**": true,
-		"patches/": true,
-		"**/*.collection": true,
-		"**/*.atlas": true,
-		"**/icon_*.png": true
+	await extendConfigObject(config, 'search.exclude', {
+		[`${config.defoldAnnotationsFolder}/**`]: true,
+		'**/build/**': true,
+		'patches/': true,
+		'**/*.collection': true,
+		'**/*.atlas': true,
+		'**/icon_*.png': true
 	});
 	/* eslint-enable @typescript-eslint/naming-convention */
-}
-
-function extendConfigArray(config: vscode.WorkspaceConfiguration, section: string, additions: string[], configTarget?: vscode.ConfigurationTarget) {
-	const values = config.get<string[]>(section, []);
-
-	const newValues = [...values];
-	for (const newValue of additions) {
-		if (newValues.indexOf(newValue) !== -1) { continue; }
-		newValues.push(newValue);
-	}
-	const target = configTarget || vscode.ConfigurationTarget.Workspace;
-	config.update(section, newValues, target);
-}
-
-function setConfigValue<TValue>(config: vscode.WorkspaceConfiguration, section: string, newValue: TValue, configTarget?: vscode.ConfigurationTarget) {
-	const target = configTarget || vscode.ConfigurationTarget.Workspace;
-	config.update(section, newValue, target);
-}
-
-function extendConfigObject(config: vscode.WorkspaceConfiguration, section: string, addition: object, configTarget?: vscode.ConfigurationTarget) {
-	const value = config.get(section, {});
-	
-	const newValue = { ...value, ...addition };
-	const target = configTarget || vscode.ConfigurationTarget.Workspace;
-	config.update(section, newValue, target);
 }
