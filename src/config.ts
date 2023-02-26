@@ -1,4 +1,4 @@
 export const config = {
-    defoldAnnotationsFolder: '.defold',
-    assetsAnnotationsFolder: '.defold/lib',
+    defoldAnnotationsFolder: '.defold/api',
+    assetsAnnotationsFolder: '.defold/assets',
 };

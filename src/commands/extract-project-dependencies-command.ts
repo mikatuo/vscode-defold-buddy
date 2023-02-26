@@ -4,7 +4,7 @@ import { constants } from '../constants';
 import { IAsset, IState, StateMemento } from '../persistence/state-memento';
 import { extendConfigArray, getWorkspacePath, readWorkspaceFile, removeFromConfigArray, safelyDeleteFolder, saveWorkspaceFile } from '../utils/common';
 import { GameProjectConfig } from '../utils/game-project-config';
-const AdmZip = require("adm-zip");
+import { ZipArchiveManager } from '../utils/zip-archive-manager';
 
 export async function registerUnzipProjectAssetsCommand(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.unzipDependencies', async (folder: vscode.Uri) => {
@@ -17,16 +17,17 @@ export async function registerUnzipProjectAssetsCommand(context: vscode.Extensio
         console.log('Extracting dependencies...');
         state.assets = [];
         await safelyDeleteFolder(config.assetsAnnotationsFolder, { recursive: true, useTrash: false });
-        // a workaround to make the Lua plugin to reload lib files after they change
-        await removeValueFromVsCodeWorkspaceSettings('Lua.workspace.library', config.assetsAnnotationsFolder);
-        for (const filename of filenames) {
-            const unzippedAsset = await unzipOnlyIncludedAssetFolder(filename);
+        // remove .defold/lib/ from the library paths in the Lua plugin settings
+        // a workaround to make the Lua plugin reload lib files after they change
+        await removeLuaWorkspaceLibrariesFromSettings();
+        for await (const filename of filenames) {
+            const unzippedAsset = await unzipAssetFromArchive(filename);
             await maybeEnhanceUnzippedAsset(unzippedAsset);
+            // add .defold/lib/ into the library paths in the Lua plugin settings
+            //await moveAssetIncludeFolderIntoAnnotationsFolder(unzippedAsset);
             state.assets.push(toAssetInfo(unzippedAsset, filename));
-            // add the /.defold/lib into the workspace library
-            // so that they are available for intellisense
-            await addValueToVsCodeWorkspaceSettings('Lua.workspace.library', config.assetsAnnotationsFolder);
         }
+        await addLuaWorkspaceLibrariesIntoSettings();
         await StateMemento.save(context, state);
 	}));
 };
@@ -52,30 +53,32 @@ function assetAnnotationsAreUpToDate(state: IState, filenames: [string, vscode.F
     return allAreUpToDate;
 }
 
-async function removeValueFromVsCodeWorkspaceSettings(section: string, valueToRemove: string) {
+async function removeLuaWorkspaceLibrariesFromSettings() {
     const workspaceConfig = vscode.workspace.getConfiguration();
-    await removeFromConfigArray(workspaceConfig, section, valueToRemove);
+    await removeFromConfigArray(workspaceConfig, 'Lua.workspace.library', x => x.startsWith(config.assetsAnnotationsFolder));
 }
 
-async function addValueToVsCodeWorkspaceSettings(section: string, addition: string) {
+async function addLuaWorkspaceLibrariesIntoSettings() {
     const workspaceConfig = vscode.workspace.getConfiguration();
-    await extendConfigArray(workspaceConfig, section, [addition]);
+    await extendConfigArray(workspaceConfig, 'Lua.workspace.library', [config.assetsAnnotationsFolder]);
 }
 
-async function unzipOnlyIncludedAssetFolder(filename: [string, vscode.FileType]) {
-    const zipUri = getWorkspacePath(`${constants.assetsInternalFolder}/${filename[0]}`);
-    const destinationUri = getWorkspacePath(config.assetsAnnotationsFolder);
-    const unzippedAsset = await unzipAssetFromArchive(zipUri!, destinationUri!);
-    return unzippedAsset;
+async function addLuaWorkspaceLibrary(assetInfo: IArchivedAsset) {
+    const workspaceConfig = vscode.workspace.getConfiguration();
+    const rootAssetUri = vscode.Uri.joinPath(getWorkspacePath(config.assetsAnnotationsFolder)!, assetInfo.rootDirectory);
+    const rootAssetFolder = vscode.workspace.asRelativePath(rootAssetUri);
+    await extendConfigArray(workspaceConfig, 'Lua.workspace.library', [rootAssetFolder]);
 }
 
 async function maybeEnhanceUnzippedAsset(unzippedAsset: IArchivedAsset) {
     if (!unzippedAsset || !unzippedAsset.name) {
         return;
     }
+    const assetsAnnotationsUri = getWorkspacePath(config.assetsAnnotationsFolder)!;
     switch (unzippedAsset.name.toLowerCase()) {
         case 'druid':
-            await safelyEditAssetFile(unzippedAsset, 'druid.lua', (content: string) => {
+            const path = vscode.Uri.joinPath(assetsAnnotationsUri, unzippedAsset.includeDirectories[0], 'druid.lua');
+            await safelyEditAssetFile(path, (content: string) => {
                 return content.replace('local M = {}', 'local M = {} ---@type druid');
             });
             break;
@@ -84,28 +87,63 @@ async function maybeEnhanceUnzippedAsset(unzippedAsset: IArchivedAsset) {
     }
 }
 
-async function safelyEditAssetFile(unzippedAsset: IArchivedAsset, filename: string, mutator: (content: string) => string) {
+async function moveAssetIncludeFolderIntoAnnotationsFolder(unzippedAsset: IArchivedAsset) {
+    const assetsAnnotationsPath = getWorkspacePath(config.assetsAnnotationsFolder)!;
+
     try {
-        const druidLuaFileUri = vscode.Uri.joinPath(unzippedAsset.unzippedUri!, 'druid.lua');
-        let fileContent = await readWorkspaceFile(druidLuaFileUri);
-        fileContent = mutator(fileContent!);
-        await saveWorkspaceFile(druidLuaFileUri, fileContent);
+        // move the /.defold/lib/{asset-name}/{include-dir} into /.defold/lib/{include-dir}
+        const assetRootUri = vscode.Uri.joinPath(assetsAnnotationsPath, unzippedAsset.rootDirectory);
+        for await (const includeDir of unzippedAsset.includeDirectories) {
+            const assetIncludeUri = vscode.Uri.joinPath(assetRootUri, includeDir);
+            const destinationUri = vscode.Uri.joinPath(assetsAnnotationsPath, includeDir);
+            await vscode.workspace.fs.copy(assetIncludeUri, destinationUri);
+        }
+        await vscode.workspace.fs.delete(assetRootUri, { recursive: true, useTrash: false });
     } catch (ex) {
-        console.error(`Failed to edit an unzipped asset file ${filename} in '${unzippedAsset.name}' asset.`, ex);
+        console.error('Failed to move asset include folder into annotations folder.', ex);
     }
 }
 
-async function unzipAssetFromArchive(zipUri: vscode.Uri, destinationFolderUri: vscode.Uri): Promise<IArchivedAsset> {
-    const zip = new AdmZip(zipUri.fsPath);
-    const zipEntries = zip.getEntries();
-    const assetInfo = await readAssetInfoFromArchive(zip, zipEntries);
+async function safelyEditAssetFile(path: vscode.Uri, mutator: (content: string) => string) {
+    try {
+        let fileContent = await readWorkspaceFile(path);
+        fileContent = mutator(fileContent!);
+        await saveWorkspaceFile(path, fileContent);
+    } catch (ex) {
+        console.error(`Failed to edit an unzipped asset file ${path.fsPath}.`, ex);
+    }
+}
+
+async function unzipAssetFromArchive(filename: [string, vscode.FileType]): Promise<IArchivedAsset> {
+    const zipUri = getWorkspacePath(`${constants.assetsInternalFolder}/${filename[0]}`)!;
+    const destinationUri = getWorkspacePath(config.assetsAnnotationsFolder)!;
+    
+    const archiveManager = new ZipArchiveManager(zipUri.fsPath);
+    const archivedAsset = await readAssetInfoFromArchive(archiveManager);
 
     // unzip the asset into /.defold/lib/asset-name/include-dir
-    const includeDirRelativePathInsideArchive = `${assetInfo.rootDirInArchive}/${assetInfo.includeDirectory}/`;
-    const includeDirZipEntry = findZipEntry(zipEntries, (entry: any) => entry.entryName === includeDirRelativePathInsideArchive);
-    zip.extractEntryTo(includeDirZipEntry.entryName, destinationFolderUri.fsPath, /*maintainEntryPath*/true, /*overwrite*/true);
-    assetInfo.unzippedUri = vscode.Uri.joinPath(destinationFolderUri, includeDirRelativePathInsideArchive);
-    return assetInfo;
+    try {
+        const includeDirs = getIncludeDirsInsideArchive(archivedAsset);
+        await archiveManager.extractEntries(
+            entry => includeDirs.includes(entry.relativePath),
+            destinationUri,
+            { overwrite: true },
+        );
+        return archivedAsset;
+    } catch (ex) {
+        console.error(`Failed to unzip asset '${archivedAsset.name}' from archive '${zipUri.fsPath}'.`, ex);
+        return archivedAsset;
+    }
+}
+
+function getIncludeDirsInsideArchive(archivedAsset: IArchivedAsset): string[] {
+    return archivedAsset.includeDirectories.map(includeDir => {
+        if (archivedAsset.rootDirectory !== '') {
+            return `${archivedAsset.rootDirectory}/${includeDir}/`;
+        } else {
+            return `${includeDir.trim()}/`;
+        }
+    });
 }
 
 function toAssetInfo(unzippedAsset: IArchivedAsset, filename: [string, vscode.FileType]): IAsset {
@@ -116,40 +154,25 @@ function toAssetInfo(unzippedAsset: IArchivedAsset, filename: [string, vscode.Fi
     };
 }
 
-function findZipEntry(zipEntries: any[], predicate: (entry: any) => boolean): any {
-    for (const zipEntry of zipEntries) {
-        if (predicate(zipEntry)) {
-            return zipEntry;
-        }
-    }
-}
-
-function readAssetInfoFromArchive(zip: any, zipEntries: any[]): IArchivedAsset {
+async function readAssetInfoFromArchive(archiveManager: ZipArchiveManager): Promise<IArchivedAsset> {
     try {
-        const gameProjectZipEntry = findZipEntry(zipEntries, (entry: any) => entry.name === 'game.project');
-        
-        const rootDirName = zipEntries[0].entryName.replace(/\/$/, '');
-        const rootDirNameParts = rootDirName.split('-');
-    
-        const data = zip.readAsText(gameProjectZipEntry.entryName);
-        const config = GameProjectConfig.fromString(data);
-        const includeDir = config.get({ section: '[library]' }).find(x => x.key === 'include_dirs')!.value;
+        const data = await archiveManager.readAsText('game.project');
+        const config = GameProjectConfig.fromString(data!);
         return {
-            name: includeDir,
-            version: rootDirNameParts[rootDirNameParts.length - 1],
-            rootDirInArchive: rootDirName,
-            includeDirectory: includeDir,
+            name: config.title(),
+            version: config.version(),
+            rootDirectory: archiveManager.rootDirectory || '',
+            includeDirectories: config.libraryIncludeDirs(),
         };
     } catch (e) {
-        console.log(`Something went wrong. ${e}`);
+        console.log(`Failed to read asset info from the archive. ${e}`);
+        return {} as IArchivedAsset;
     }
-    return {} as IArchivedAsset;
 }
 
 interface IArchivedAsset {
     name: string;
     version: string;
-    rootDirInArchive: string;
-    includeDirectory: string;
-    unzippedUri?: vscode.Uri;
+    rootDirectory: string;
+    includeDirectories: string[];
 }

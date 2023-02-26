@@ -4,7 +4,7 @@ import { readWorkspaceFile } from './common';
 import { DefoldIndex, IDefoldComponent, IDefoldFile, IDefoldInstance } from './defold-index';
 
 const defaultInclude = '**/*.{go,collection}';
-const defaultExclude = 'build/**';
+const defaultExclude = '.defold/**';
 
 export { DefoldIndex, IDefoldComponent, IDefoldFile, IDefoldInstance };
 

@@ -17,6 +17,7 @@ export class StateMemento {
 export interface IState {
 	version: string;
     assets: IAsset[];
+    lastMigration?: number;
 }
 
 export interface IAsset {

@@ -13,6 +13,7 @@ import { getWorkspacePath } from './utils/common';
 import { registerUnzipProjectAssetsCommand } from './commands/extract-project-dependencies-command';
 import { StateMemento } from './persistence/state-memento';
 import { constants } from './constants';
+import { migrateFromOldVersions } from './migrations/migrate-from-old-versions';
 
 // TODO: do not show URL suggestions for "require"
 
@@ -21,12 +22,13 @@ import { constants } from './constants';
 // TODO: decorate vector4 with color icon
 // TODO: debugger
 // TODO: show diagnostic errors for urls? (https://code.visualstudio.com/updates/v1_37#_diagnosticstagdeprecated)
-// TODO: validate requires - show diagnostic errors if the file does not exist
 // TODO: validate urls - show diagnostic errors if the url does not exist
 // TODO: add Sentry or other error reporting tool
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 	console.log('Activation!');
+
+	await migrateFromOldVersions(context);
 
 	registerCommands(context);
 	registerUrlCompletionItemProvider(context);
@@ -38,7 +40,6 @@ export function activate(context: vscode.ExtensionContext) {
 	// index game files for autocompletion
 	vscode.commands.executeCommand('vscode-defold-ide.indexDefoldFiles');
 	
-
 	// TODO: EXPERIMENTAL - register file watchers
 	//reIndexDefoldFilesOnChanges();
 }
@@ -157,3 +158,4 @@ async function updateAssetsOnce() {
 	await vscode.commands.executeCommand('vscode-defold-ide.unzipDependencies');
 	updatingAssets = false;
 }
+

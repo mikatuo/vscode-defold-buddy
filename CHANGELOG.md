@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.8.7] - 2023-02-26
+- `CHG` Download annotation files from [Github](https://github.com/mikatuo/defold-lua-annotations/releases)
+- `CHG` Various improvements with annotations for dependencies
+
 ## [0.8.6] - 2023-02-24
 - `ADD` Unzip project dependencies into `/.defold/lib` folder so that they could be picked up by the Lua extension for intellisense
 

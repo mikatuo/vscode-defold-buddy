@@ -22,50 +22,10 @@ export class ConfigInitializer {
 	}
 
 	async run() {
-		const selectedVersion = await vscode.window.showQuickPick([
-			{ label: '1.4.2' },
-			{ label: '1.4.1' },
-			{ label: '1.4.0' },
-		], {
-			placeHolder: 'Select Defold version of the current project.',
-			ignoreFocusOut: true,
-		});
-		if (!selectedVersion) {
-			vscode.window.showErrorMessage('Please select version of Defold used for this project.');
-			return;
-		}
-		// copy annotations
-		this.defoldVersion = selectedVersion.label;
-		this.workspaceAnnotationsFolder = config.defoldAnnotationsFolder;
-		// TODO: move it outside of the config initializer
-		// TODO: download annotations from Github in a .zip file
-		this.copyDefoldAnnotationsIntoWorkspace();
 		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`, '/.idea', '/.vscode'], '.defignore'); // build server to ignore
 		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`], '.gitignore'); // git to ignore
 		// add recommended workspace settings
 		await this.initWorkspaceSettingsForDefold();
-		// save extension state
-		await StateMemento.save(this.context, {
-			version: selectedVersion.label,
-			assets: [],
-		});
-	}
-
-	copyDefoldAnnotationsIntoWorkspace() {
-		// annotations for intellisense
-		const sourceFolder = this.getExtensionPath(`defold-${this.defoldVersion}`);
-		const destinationFolder = getWorkspacePath(this.workspaceAnnotationsFolder)?.fsPath;
-
-		if (!destinationFolder) {
-			vscode.window.showErrorMessage('Failed to setup IntelliSense for Defold. Please open a folder first.');
-			return;
-		}
-		copyFolder(sourceFolder, destinationFolder);
-	}
-
-	getExtensionPath(folder: string): string {
-		// TODO: check if such folder exists
-		return path.join(this.extension.path, folder);
 	}
 
 	private async initWorkspaceSettingsForDefold() {

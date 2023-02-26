@@ -1,10 +1,40 @@
 import { readWorkspaceFile, saveWorkspaceFile } from './common';
 
 export class GameProjectConfig {
+    ini: GameProjectIniConfig;
+
+    constructor(ini: GameProjectIniConfig) {
+        this.ini = ini;
+    }
+    
+    static fromString(content: string): GameProjectConfig {
+        const ini = GameProjectIniConfig.fromString(content);
+        return new GameProjectConfig(ini);
+    }
+
+    title(): string {
+        const title = this.ini.get({ section: '[project]' }).find(x => x.key === 'title');
+        return title ? title.value : '';
+    }
+
+    version(): string {
+        const version = this.ini.get({ section: '[project]' }).find(x => x.key === 'version');
+        return version ? version.value : '';
+    }
+
+    libraryIncludeDirs(): string[] {
+        let includeDirs = this.ini.get({ section: '[library]' })
+            .find(x => x.key === 'include_dirs')
+            ?.value?.replace(/^\/|\/$/g, '') || '';
+        return includeDirs.split(',').map(x => x.trim());
+    }
+}
+
+export class GameProjectIniConfig {
     private filename!: string;
     private sections!: ISection[];
 
-    static async fromFile(filename: string): Promise<GameProjectConfig> {
+    static async fromFile(filename: string): Promise<GameProjectIniConfig> {
         const fileContent = await readWorkspaceFile(filename);
         if (!fileContent) {
             throw new Error(`Failed to read project settings from the ${filename} file`);
@@ -15,8 +45,8 @@ export class GameProjectConfig {
         return project;
     }
     
-    static fromString(content: string): GameProjectConfig {
-        const project = new GameProjectConfig();
+    static fromString(content: string): GameProjectIniConfig {
+        const project = new GameProjectIniConfig();
         project.sections = parseIni(content);
         return project;
     }

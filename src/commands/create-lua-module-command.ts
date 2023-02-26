@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as crypto from 'crypto';
 import { saveWorkspaceFile } from '../utils/common';
 import { CommandWithArgs } from './command';
-import { GameProjectConfig } from '../utils/game-project-config';
+import { GameProjectIniConfig } from '../utils/game-project-config';
 
 export function registerCreateLuaModuleCommand(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.createLuaModule', async (folder: vscode.Uri) => {
@@ -115,7 +115,7 @@ async function promptName(): Promise<string> {
     return id || placeholder;
 }
 async function ensureLuaPreprocessorExtensionIsInstalled() {
-    const config = await GameProjectConfig.fromFile('game.project');
+    const config = await GameProjectIniConfig.fromFile('game.project');
 
     if (config.isExtensionInstalled('extension-lua-preprocessor')) {
         return;

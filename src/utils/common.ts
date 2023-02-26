@@ -103,13 +103,16 @@ export async function extendConfigArray(config: vscode.WorkspaceConfiguration, s
 	await config.update(section, newValues, target);
 }
 
-export async function removeFromConfigArray(config: vscode.WorkspaceConfiguration, section: string, valueToRemove: string, configTarget?: vscode.ConfigurationTarget) {
+export async function removeFromConfigArray(config: vscode.WorkspaceConfiguration, section: string, matcher: (value: string) => boolean, configTarget?: vscode.ConfigurationTarget) {
     const values = config.get<string[]>(section, []);
 
-    const indexOf = values.indexOf(valueToRemove);
-    if (indexOf === -1) { return; }
-    
-    values.splice(indexOf, 1);
+    for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        if (matcher(value)) {
+            values.splice(i, 1);
+            i--;
+        }
+    }
     const target = configTarget || vscode.ConfigurationTarget.Workspace;
 	await config.update(section, values, target);
 }

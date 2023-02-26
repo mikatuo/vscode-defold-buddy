@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { Command } from './command';
 import { saveWorkspaceFile } from '../utils/common';
-import { GameProjectConfig } from '../utils/game-project-config';
+import { GameProjectIniConfig } from '../utils/game-project-config';
 
 export function registerGenerateManifestCommand(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.generateManifest', async () => {
@@ -19,7 +19,7 @@ export class GenerateManifestCommand extends Command {
 		if (!manifestSaved) { vscode.window.showErrorMessage('Failed to save the manifest'); }
 
 		vscode.window.showInformationMessage('The manifest has been generated.');
-		const config = await GameProjectConfig.fromFile('game.project');
+		const config = await GameProjectIniConfig.fromFile('game.project');
 		config.set({
 			section: '[native_extension]',
 			key: 'app_manifest',
