@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.9.0] - 2023-02-27
+- `ADD` Hot reload the running game when a `.script` or `.lua` file is save
+
 ## [0.8.9] - 2023-02-26
 - `CHG` Logo
 

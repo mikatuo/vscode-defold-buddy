@@ -8,12 +8,13 @@ import { registerReloadGameCommand } from './wip/reloadGameCommand';
 import { registerCreateGameObjectCommand } from './commands/create-game-object-command';
 import { registerCreateGuiCommand } from './commands/create-gui-command';
 import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
-import { registerProjectBuildCommand as registerProjectBuildCommand } from './commands/register-project-build-command';
+import { registerProjectBuildCommand } from './commands/register-project-build-command';
 import { getWorkspacePath } from './utils/common';
 import { registerUnzipProjectAssetsCommand } from './commands/extract-project-dependencies-command';
 import { StateMemento } from './persistence/state-memento';
 import { constants } from './constants';
 import { migrateFromOldVersions } from './migrations/migrate-from-old-versions';
+import { registerHotReloadCommand } from './commands/register-hot-reload-command';
 
 // TODO: do not show URL suggestions for "require"
 
@@ -58,6 +59,7 @@ function registerCommands(context: vscode.ExtensionContext) {
 	registerCreateLuaModuleCommand(context);
 	// editor commands
 	registerProjectBuildCommand(context);
+	registerHotReloadCommand(context);
 	//registerReloadGameCommand(context);
 }
 

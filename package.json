@@ -4,7 +4,7 @@
   "description": "Tools for Defold to make your life easier and coding in Lua nicer.",
   "publisher": "mikatuo",
   "license": "MIT",
-  "version": "0.8.9",
+  "version": "0.9.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/mikatuo/vscode-defold-ide"
@@ -78,6 +78,12 @@
         "command": "vscode-defold-ide.projectBuild",
         "title": "Project > Build",
         "category": "Defold"
+      },
+      {
+        "command": "vscode-defold-ide.hotReload",
+        "title": "Hot reload",
+        "category": "Defold",
+        "enablement": "false"
       },
       {
         "command": "vscode-defold-ide.unzipDependencies",
