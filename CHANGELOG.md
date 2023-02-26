@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.8.9] - 2023-02-26
+- `CHG` Logo
+
 ## [0.8.8] - 2023-02-26
 - `FIX` Do not show URL autocompletion after `require` keyword
 
