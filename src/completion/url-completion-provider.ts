@@ -30,10 +30,13 @@ function showUrlCompletion(document: vscode.TextDocument, position: vscode.Posit
 	}
 	
 	const linePrefix = document.lineAt(position).text.substring(0, position.character);
+	if (linePrefix.includes('require "') || linePrefix.includes('require("')) {
+		return false;
+	}
+	
 	if (linePrefix.endsWith('"') || linePrefix.endsWith('"#') || /"\w+:$/.test(linePrefix)) {
 		return true;
 	}
-
 	return false;
 }
 

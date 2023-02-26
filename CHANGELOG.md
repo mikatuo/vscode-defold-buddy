@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.8.8] - 2023-02-26
+- `FIX` Do not show URL autocompletion after `require` keyword
+
 ## [0.8.7] - 2023-02-26
 - `CHG` Download annotation files from [Github](https://github.com/mikatuo/defold-lua-annotations/releases)
 - `CHG` Various improvements with annotations for dependencies
