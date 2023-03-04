@@ -12,13 +12,14 @@ export class DefoldFileIndexer {
     private index = new DefoldIndex();
     
     static async indexWorkspace(token?: vscode.CancellationToken): Promise<DefoldIndex> {
-        console.log('Indexing workspace...');
+        console.log('Indexing: started');
         const indexer = new DefoldFileIndexer();
         const files = await vscode.workspace.findFiles(defaultInclude, defaultExclude, undefined, token);
         for (const file of files) {
             await indexer.add(file);
         }
         indexer.resolveReferencedInstances();
+        console.log('Indexing: completed');
         return DefoldIndex.instance = indexer.index;
     }
 
@@ -115,9 +116,14 @@ function extractDefoldInstances(lines: string[]): IDefoldFile {
                     prototype: maybeParse(lines[i + 1], 'prototype:'),
                     instances: [],
                     components: [],
+                    type: '',
                 } as IDefoldInstance;
                 x.filename = path.basename(x.collection || x.prototype || '');
-                x.type = x.filename ? x.filename.split('.')[1] : '';
+                if (x.filename) {
+                    x.type = x.filename.split('.')[1];
+                } else if (lines[i + 1].includes('components {')) {
+                    x.type = 'go';
+                }
                 result.instances.push(x);
                 break;
             case DefoldObjectType.component:
@@ -129,7 +135,7 @@ function extractDefoldInstances(lines: string[]): IDefoldFile {
                         component: maybeParse(lines[i + 1], 'component:'),
                     } as IDefoldComponent;
                     c.filename = path.basename(c.component || '');
-                    c.type = c.filename ? c.filename.split('.')[1] : '';
+                    c.type = c.filename ? c.filename.split('.')[1] : maybeParse(lines[i + 1], 'type:');
                     parent.components.push(c);
                 } else { // parsing a .go file
                     const c = {
@@ -138,7 +144,7 @@ function extractDefoldInstances(lines: string[]): IDefoldFile {
                         component: maybeParse(lines[i + 1], 'component:'),
                     } as IDefoldComponent;
                     c.filename = path.basename(c.component || '');
-                    c.type = c.filename ? c.filename.split('.')[1] : '';
+                    c.type = c.filename ? c.filename.split('.')[1] : maybeParse(lines[i + 1], 'type:');
                     result.components.push(c);
                 }
                 break;

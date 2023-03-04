@@ -4,7 +4,7 @@ import { registerGenerateManifestCommand } from './commands/generate-manifest-co
 import { registerUrlCompletionItemProvider } from './completion/url-completion-provider';
 import { registerGenerateHashesModuleCommand } from './commands/generate-hashes-module';
 import { registerIndexDefoldFilesCommand } from './commands/index-defold-files-command';
-import { registerReloadGameCommand } from './wip/reloadGameCommand';
+import { registerListenGameLogsCommand } from './wip/reloadGameCommand';
 import { registerCreateGameObjectCommand } from './commands/create-game-object-command';
 import { registerCreateGuiCommand } from './commands/create-gui-command';
 import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
@@ -15,8 +15,6 @@ import { StateMemento } from './persistence/state-memento';
 import { constants } from './constants';
 import { migrateFromOldVersions } from './migrations/migrate-from-old-versions';
 import { registerHotReloadCommand } from './commands/register-hot-reload-command';
-
-// TODO: do not show URL suggestions for "require"
 
 // TODO: annotations for Defold to work without copying the files into the project
 //	     ^ currently, there is no way to do that without specifying the absolute path, which I don't like
@@ -60,7 +58,6 @@ function registerCommands(context: vscode.ExtensionContext) {
 	// editor commands
 	registerProjectBuildCommand(context);
 	registerHotReloadCommand(context);
-	//registerReloadGameCommand(context);
 }
 
 function intellisenseForProjectDependencies(context: vscode.ExtensionContext) {

@@ -27,6 +27,12 @@ export async function registerUnzipProjectAssetsCommand(context: vscode.Extensio
             //await moveAssetIncludeFolderIntoAnnotationsFolder(unzippedAsset);
             state.assets.push(toAssetInfo(unzippedAsset, filename));
         }
+        // delete 'ext.manifest' files otherwise they cause errors when bundling
+        const files = await vscode.workspace.findFiles('.defold/assets/ext.manifest');
+        for (const file of files) {
+            await vscode.workspace.fs.delete(file);
+        }
+        //await deleteFilesFromAssetsFolder('.cpp');
         await addLuaWorkspaceLibrariesIntoSettings();
         await StateMemento.save(context, state);
 	}));
@@ -38,7 +44,7 @@ async function readArchivedAssetFilenames() {
         const archiveFilenames = await vscode.workspace.fs.readDirectory(dependenciesInternalPath!);
         return archiveFilenames;
     } catch (ex) {
-        console.error('Failed to read archived assets.', ex);
+        console.log('Failed to read archived assets.', ex);
         return [];
     }
 }
@@ -63,13 +69,6 @@ async function addLuaWorkspaceLibrariesIntoSettings() {
     await extendConfigArray(workspaceConfig, 'Lua.workspace.library', [config.assetsAnnotationsFolder]);
 }
 
-async function addLuaWorkspaceLibrary(assetInfo: IArchivedAsset) {
-    const workspaceConfig = vscode.workspace.getConfiguration();
-    const rootAssetUri = vscode.Uri.joinPath(getWorkspacePath(config.assetsAnnotationsFolder)!, assetInfo.rootDirectory);
-    const rootAssetFolder = vscode.workspace.asRelativePath(rootAssetUri);
-    await extendConfigArray(workspaceConfig, 'Lua.workspace.library', [rootAssetFolder]);
-}
-
 async function maybeEnhanceUnzippedAsset(unzippedAsset: IArchivedAsset) {
     if (!unzippedAsset || !unzippedAsset.name) {
         return;
@@ -84,23 +83,6 @@ async function maybeEnhanceUnzippedAsset(unzippedAsset: IArchivedAsset) {
             break;
         default:
             break;
-    }
-}
-
-async function moveAssetIncludeFolderIntoAnnotationsFolder(unzippedAsset: IArchivedAsset) {
-    const assetsAnnotationsPath = getWorkspacePath(config.assetsAnnotationsFolder)!;
-
-    try {
-        // move the /.defold/lib/{asset-name}/{include-dir} into /.defold/lib/{include-dir}
-        const assetRootUri = vscode.Uri.joinPath(assetsAnnotationsPath, unzippedAsset.rootDirectory);
-        for await (const includeDir of unzippedAsset.includeDirectories) {
-            const assetIncludeUri = vscode.Uri.joinPath(assetRootUri, includeDir);
-            const destinationUri = vscode.Uri.joinPath(assetsAnnotationsPath, includeDir);
-            await vscode.workspace.fs.copy(assetIncludeUri, destinationUri);
-        }
-        await vscode.workspace.fs.delete(assetRootUri, { recursive: true, useTrash: false });
-    } catch (ex) {
-        console.error('Failed to move asset include folder into annotations folder.', ex);
     }
 }
 

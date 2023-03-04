@@ -1,24 +1,29 @@
 import * as vscode from 'vscode';
-import { StateMemento } from '../persistence/state-memento';
+import { config } from '../config';
+import { IState, StateMemento } from '../persistence/state-memento';
 import { extendConfigArray, getWorkspacePath, removeFromConfigArray } from '../utils/common';
 
 export async function migrateFromOldVersions(context: vscode.ExtensionContext) {
 	const state = await StateMemento.load(context);
-	if (!state || state.lastMigration === 1) { return; }
+	if (!state) { return; }
 
 	if (!state.lastMigration) { state.lastMigration = 0; }
+    if (state.lastMigration >= config.lastMigration) { return; }
 
 	if (state.lastMigration === 0) {
         // move .defold to .defold/api
 		// move .defold/lib to .defold/assets
-		await rearrangeAnnotationFiles();
-
-		state.lastMigration++;
-		await StateMemento.save(context, state);
+		await safelyRearrangeAnnotationFiles();
+		await updateMigrationState(state, context);
 	}
+    if (state.lastMigration === 1) {
+        // delete 'ext.manifest' files otherwise they cause errors when bundling
+        await safelyDeleteExtmanifestFilesInAssetAnnotationFolder();
+        await updateMigrationState(state, context);
+    }
 }
 
-async function rearrangeAnnotationFiles() {
+async function safelyRearrangeAnnotationFiles() {
     try {
         await vscode.workspace.fs.rename(
             await getWorkspacePath('.defold/lib')!,
@@ -51,3 +56,16 @@ async function rearrangeAnnotationFiles() {
     } catch { }
 }
 
+async function safelyDeleteExtmanifestFilesInAssetAnnotationFolder() {
+    try {
+        const files = await vscode.workspace.findFiles('.defold/assets/**/ext.manifest');
+        for (const file of files) {
+            await vscode.workspace.fs.delete(file);
+        }
+    } catch { }
+}
+
+async function updateMigrationState(state: IState, context: vscode.ExtensionContext) {
+    state.lastMigration!++;
+    await StateMemento.save(context, state);
+}

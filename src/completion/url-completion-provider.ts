@@ -1,17 +1,20 @@
 import * as vscode from 'vscode';
-import { readWorkspaceFileBytes } from '../utils/common';
 import { DefoldIndex, IDefoldComponent, IDefoldInstance } from '../utils/defold-file-indexer';
 
+// TODO: cache suggestions for X minutes/hours
+// TODO: identify collection proxies and provide completion for them
 export async function registerUrlCompletionItemProvider(context: vscode.ExtensionContext) {
     const urlCompletion = vscode.languages.registerCompletionItemProvider('lua', {
         provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
 			if (!showUrlCompletion(document, position)) { return undefined; }
 			const script = vscode.workspace.asRelativePath(document.uri);
 
-			// TODO: when an autocomplete is selected then add hash at the beginning of the file
-			// TODO: identify collection proxies and provide completion for them
-			// TODO: identify if a script is attached to a game object or collection created by a factory
-			// TODO: then if the factory is placed inside a collection then provide completion for that collection
+			// autocompletion in .lua files
+			if (script.endsWith('.lua')) {
+				return completionForAllCollections();
+			}
+
+			// autocompletion in .script files
 			const items = completionIfAttachedToGameObject(script).concat(completionIfAttachedToCollection(script));
 			if (items.length) {
 				return items;
@@ -25,7 +28,7 @@ export async function registerUrlCompletionItemProvider(context: vscode.Extensio
 }
 
 function showUrlCompletion(document: vscode.TextDocument, position: vscode.Position): boolean {
-	if (!document.uri.path.endsWith('.script')) {
+	if (!document.uri.path.endsWith('.script') && !document.uri.path.endsWith('.lua')) {
 		return false;
 	}
 	
@@ -38,6 +41,11 @@ function showUrlCompletion(document: vscode.TextDocument, position: vscode.Posit
 		return true;
 	}
 	return false;
+}
+
+function completionForAllCollections(): vscode.CompletionItem[] {
+	const instances = DefoldIndex.instance.collections.flatMap(x => x.instances);
+	return instances.flatMap(instanceCompletionItem);
 }
 
 function completionIfAttachedToGameObject(scriptPath: string): vscode.CompletionItem[] {

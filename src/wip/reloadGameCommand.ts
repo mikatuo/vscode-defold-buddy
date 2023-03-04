@@ -4,7 +4,7 @@ import { load, Root } from 'protobufjs';
 import { readWorkspaceFile } from '../utils/common';
 const descriptor = require('protobufjs/ext/descriptor');
 
-export function registerReloadGameCommand(context: vscode.ExtensionContext) {
+export function registerListenGameLogsCommand(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.reloadGame', async () => {
 		vscode.window.showInformationMessage('Testing...');
 

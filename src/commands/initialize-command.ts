@@ -42,6 +42,7 @@ async function saveInitializedState(context: vscode.ExtensionContext, selectedRe
 	await StateMemento.save(context, {
 		version: selectedRelease.version,
 		assets: [],
+		lastMigration: config.lastMigration,
 	});
 }
 
