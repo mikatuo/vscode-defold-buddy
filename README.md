@@ -67,9 +67,11 @@ https://user-images.githubusercontent.com/7230306/222926994-3aa97bc2-74c4-48f7-a
 <details><summary>Demo</summary><p>
 
 You can generate the app manifest from Defold editor:
+
 ![fc6f5813cdea82f6a8f264f7634f3b28855e6a3f_2_408x429](https://user-images.githubusercontent.com/7230306/222927049-96c8af0b-880d-4021-9a63-7e9e031aeb16.png)
 
 Or from VSCode:
+
 ![8ea1248ec0f937778e9e3645a4158209fb53ada0](https://user-images.githubusercontent.com/7230306/222927056-03cd09eb-9fdb-4801-9286-a8d9c7d77aad.gif)
 </p></details>
 
