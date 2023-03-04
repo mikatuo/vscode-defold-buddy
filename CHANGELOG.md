@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.9.3] - 2023-03-04
+- `CHG` Updated readme
+
 ## [0.9.2] - 2023-03-04
 - `ADD` Defold URL autocompletion in .lua files
 - `FIX` Fix errors when bundling a project with assets that have ext.manifest files
