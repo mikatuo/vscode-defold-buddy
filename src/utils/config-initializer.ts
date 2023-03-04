@@ -22,8 +22,8 @@ export class ConfigInitializer {
 	}
 
 	async run() {
-		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`, '/.idea', '/.vscode'], '.defignore'); // build server to ignore
-		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`], '.gitignore'); // git to ignore
+		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`, '/.idea', '/.vscode'], '.defignore'/* filename */); // build server to ignore
+		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`], '.gitignore'/* filename */);
 		// add recommended workspace settings
 		await this.initWorkspaceSettingsForDefold();
 	}
@@ -77,7 +77,7 @@ async function configureIntelliSenseForDefold(config: vscode.WorkspaceConfigurat
 	await extendConfigArray(config, 'Lua.workspace.library', [annotationsFolder]);
 	// don't show warnings/errors for library files
 	await setConfigValue(config, 'Lua.diagnostics.libraryFiles', 'Disable');
-	await extendConfigArray(config, 'Lua.workspace.ignoreDir', [annotationsFolder]);
+	await extendConfigArray(config, 'Lua.workspace.ignoreDir', [annotationsFolder, 'build']);
 	await setConfigValue(config, 'Lua.diagnostics.ignoredFiles', 'Disable');
 }
 
