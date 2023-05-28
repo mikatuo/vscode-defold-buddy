@@ -8,7 +8,6 @@ import { config } from '../config';
 export class ConfigInitializer {
 	context: vscode.ExtensionContext;
 	extension: { id: string; path: string; };
-	defoldVersion: string;
 	workspaceAnnotationsFolder: string;
 
 	constructor(context: vscode.ExtensionContext) {
@@ -17,8 +16,7 @@ export class ConfigInitializer {
 			id: context.extension.id,
 			path: context.extension.extensionPath,
 		};
-		this.defoldVersion = '';
-		this.workspaceAnnotationsFolder = '';
+		this.workspaceAnnotationsFolder = config.defoldAnnotationsFolder;
 	}
 
 	async run() {
@@ -32,9 +30,7 @@ export class ConfigInitializer {
 		const config = vscode.workspace.getConfiguration();
 
 		await configureEditor(config);
-		if (this.workspaceAnnotationsFolder) {
-			await configureIntelliSenseForDefold(config, this.workspaceAnnotationsFolder);
-		}
+		await configureIntelliSenseForDefold(config, this.workspaceAnnotationsFolder);
 		await configureGlobalFunctions(config);
 		await configureFileAssociations(config);
 		await configureSearchExclude(config);

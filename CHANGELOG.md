@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.9.5] - 2023-05-28
+- `FIX` Fix "Initialize" not setting vscode settings for the intellisense
+
 ## [0.9.3] - 2023-03-04
 - `CHG` Updated readme
 
