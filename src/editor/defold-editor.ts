@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 const readline = require('node:readline');
 const { once } = require('node:events');
 import { DefoldEditorLogsRepository } from "../utils/defold-editor-logs-repository";
+import { openDefoldEditor } from '../utils/common';
 
 const editorBaseUrl = 'http://localhost';
 
@@ -52,18 +53,31 @@ export class DefoldEditor {
         return await this.tryToFindRunningEditorAndExecuteCommand(command);
     }
 
-    private async tryToFindRunningEditorAndExecuteCommand(command: EditorCommand): Promise<boolean> {
-        let editorPort = await getSavedPortOfRunningEditor(this.context)
-            || await tryToFindEditorPortFromLogFiles();
-        await savePort(this.context, editorPort);
+    private async tryToFindRunningEditorAndExecuteCommand(command: EditorCommand, detectPort = true): Promise<boolean> {
+        let portOfRunningEditor = await getSavedPortOfRunningEditor(this.context);
+		if (!portOfRunningEditor && detectPort) {
+			portOfRunningEditor = await tryToFindEditorPortFromLogFiles();
+		}
+        await savePort(this.context, portOfRunningEditor);
 
-        if (editorPort && await isDefoldEditorRunning(editorPort)) {
-            return await executeCommandInDefoldEditor(editorPort!, command);
-        }
-        return false;
+		if (!portOfRunningEditor) {
+			const result = await askToOpenDefoldEditorOrInputPortOrShowErrorMessage();
+			if (result.retry) {
+				const portFromUser = result.port;
+				await savePort(this.context, portFromUser);
+				return await this.tryToFindRunningEditorAndExecuteCommand(command, false /* do not detect port */);
+			}
+			return false;
+		}
+
+		const isRunning = await isDefoldEditorRunning(portOfRunningEditor);
+		if (!isRunning) {
+			return false;
+		}
+
+		return await executeCommandInDefoldEditor(portOfRunningEditor!, command);
     }
 }
-
 
 async function executeCommandInDefoldEditor(editorPort: string, command: EditorCommand): Promise<boolean> {
 	try {
@@ -142,4 +156,42 @@ async function extractEditorPortsFrom(logFile: string): Promise<string[]> {
 
 	// return the most recent ports at the beginning of the array
 	return result.reverse();
+}
+
+function askToOpenDefoldEditorOrInputPortOrShowErrorMessage(): Promise<{ retry: boolean; port?: string; }> {
+	try {
+		return askToOpenDefoldEditorOrInputPort(process.platform);
+	} catch {
+		vscode.window.showErrorMessage('Failed to start Defold editor. Please start it and try again.');
+		return Promise.resolve(doNotRetryBuildingProject);
+	}
+}
+
+const doNotRetryBuildingProject = { retry: false };
+async function askToOpenDefoldEditorOrInputPort(platform: NodeJS.Platform): Promise<{ retry: boolean; port?: string; }> {
+	const answer = await vscode.window.showInformationMessage(
+		`Running Defold editor is not found`,
+		'Open Defold', `Input Port`, 'Cancel'
+	);
+	switch (answer) {
+		case 'Open Defold':
+			await openDefoldEditor('game.project', platform);
+			return doNotRetryBuildingProject;
+		case 'Input Port':
+			const port = await askUserForPort();
+			if (!port) { return doNotRetryBuildingProject; }
+			return { retry: true, port: port };
+		default:
+			return doNotRetryBuildingProject;
+	}
+}
+
+async function askUserForPort(): Promise<string | undefined> {
+	const portFromUser = await vscode.window.showInputBox({
+		title: 'Port of the running Defold editor',
+		prompt: 'How to find a port of your running Defold editor:\n In the menu open "Debug" > "Open Web Profiler". The profiler will open in a browser. Copy the port from the URL. In example, for http://localhost:XXXXX/engine-profiler the port will be XXXXX. Input the port into the text input above.',
+		placeHolder: 'xxxxx',
+		ignoreFocusOut: true,
+	});
+	return portFromUser;
 }

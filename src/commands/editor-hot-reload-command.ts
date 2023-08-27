@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { DefoldEditor, EditorCommand } from '../editor/defold-editor';
 
-export function registerHotReloadCommand(context: vscode.ExtensionContext) {
+export function registerEditorHotReloadCommand(context: vscode.ExtensionContext) {
 	// TODO: move outside of the command
 	vscode.workspace.onDidSaveTextDocument(async (document) => {
 		if (document.fileName.endsWith('.script') || document.fileName.endsWith('.lua')) {

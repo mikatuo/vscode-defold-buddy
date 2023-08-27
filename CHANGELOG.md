@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.9.7] - 2023-08-27
+- `ADD` "Project > Build" will prompt to input a Defold's port manually if it can't detect it automatically
+
+## [0.9.6] - 2023-08-25
+- `ADD` "Project > Build" can now start Defold editor on MacOs
+
 ## [0.9.5] - 2023-05-28
 - `FIX` Fix "Initialize" not setting vscode settings for the intellisense
 

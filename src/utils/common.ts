@@ -74,13 +74,45 @@ export async function showTextDocument(relativePath: vscode.Uri | string, select
 }
 
 import { exec, spawn, fork, execFile } from 'child_process';
-export async function openDefoldEditor(relativePath: string) {
+export async function openDefoldEditor(relativePath: string, platform: NodeJS.Platform) {
     const absolutePath = await getWorkspacePath(relativePath);
     // TODO: it would be better to use 'spawn' or 'fork' but
     // for that we need to know path to the executable
+    switch (platform) {
+        case 'win32':
+            openDefoldEditorOnWindows(absolutePath);
+            break;
+        case 'darwin':
+            openDefoldEditorOnMac(absolutePath);
+            break;
+        default:
+            vscode.window.showErrorMessage(`Failed to open Defold as this feature is not implemented for '${platform}' platform. Please start it yourself and try again.`);
+    }
+}
+
+function openDefoldEditorOnWindows(absolutePath: vscode.Uri | undefined) {
     exec(`"${absolutePath?.fsPath!}"`, (error: any, stdout: any, stderr: any) => {
         if (error) {
             console.log(`error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+    });
+}
+
+function openDefoldEditorOnMac(absolutePath: vscode.Uri | undefined) {
+    // TODO: if Defold is named differently on Mac, this will not work. Make it configurable.
+    const defoldAppName = 'Defold.app';
+    exec(`open -a "${defoldAppName}" "${absolutePath?.fsPath!}"`, (error: any, stdout: any, stderr: any) => {
+        if (error) {
+            console.log(`error: ${error.message}`);
+            if (error.message.includes(`Unable to find application named '${defoldAppName}'`)) {
+                vscode.window.showErrorMessage(`Unable to find application named '${defoldAppName.replace('.app', '')}'. Please make sure that you have it in your installed Applications to use this feature.`);
+            }
             return;
         }
         if (stderr) {

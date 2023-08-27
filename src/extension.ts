@@ -8,13 +8,13 @@ import { registerListenGameLogsCommand } from './wip/reloadGameCommand';
 import { registerCreateGameObjectCommand } from './commands/create-game-object-command';
 import { registerCreateGuiCommand } from './commands/create-gui-command';
 import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
-import { registerProjectBuildCommand } from './commands/register-project-build-command';
+import { registerEditorProjectBuildCommand } from './commands/editor-project-build-command';
+import { registerEditorHotReloadCommand } from './commands/editor-hot-reload-command';
 import { getWorkspacePath } from './utils/common';
 import { registerUnzipProjectAssetsCommand } from './commands/extract-project-dependencies-command';
 import { StateMemento } from './persistence/state-memento';
 import { constants } from './constants';
 import { migrateFromOldVersions } from './migrations/migrate-from-old-versions';
-import { registerHotReloadCommand } from './commands/register-hot-reload-command';
 
 // TODO: annotations for Defold to work without copying the files into the project
 //	     ^ currently, there is no way to do that without specifying the absolute path, which I don't like
@@ -56,8 +56,8 @@ function registerCommands(context: vscode.ExtensionContext) {
 	registerCreateGuiCommand(context);
 	registerCreateLuaModuleCommand(context);
 	// editor commands
-	registerProjectBuildCommand(context);
-	registerHotReloadCommand(context);
+	registerEditorProjectBuildCommand(context);
+	registerEditorHotReloadCommand(context);
 }
 
 function intellisenseForProjectDependencies(context: vscode.ExtensionContext) {
