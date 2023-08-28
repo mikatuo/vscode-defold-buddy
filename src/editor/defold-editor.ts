@@ -44,6 +44,7 @@ export enum EditorCommand {
 
 export class DefoldEditor {
     private context: vscode.ExtensionContext;
+	showRunningDefoldEditorNotFoundWindow: boolean = true;
     
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -60,15 +61,13 @@ export class DefoldEditor {
 		}
         await savePort(this.context, portOfRunningEditor);
 
-		if (!portOfRunningEditor) {
+		if (!portOfRunningEditor && this.showRunningDefoldEditorNotFoundWindow) {
 			const result = await askToOpenDefoldEditorOrInputPortOrShowErrorMessage();
-			if (result.retry) {
-				const portFromUser = result.port;
-				await savePort(this.context, portFromUser);
-				return await this.tryToFindRunningEditorAndExecuteCommand(command, false /* do not detect port */);
-			}
+			if (result.portFromUser) { await savePort(this.context, result.portFromUser); }
+			if (result.retry) { return await this.tryToFindRunningEditorAndExecuteCommand(command, false /* do not detect port */); }
 			return false;
 		}
+		if (!portOfRunningEditor) { return false; }
 
 		const isRunning = await isDefoldEditorRunning(portOfRunningEditor);
 		if (!isRunning) {
@@ -158,7 +157,7 @@ async function extractEditorPortsFrom(logFile: string): Promise<string[]> {
 	return result.reverse();
 }
 
-function askToOpenDefoldEditorOrInputPortOrShowErrorMessage(): Promise<{ retry: boolean; port?: string; }> {
+function askToOpenDefoldEditorOrInputPortOrShowErrorMessage(): Promise<{ retry: boolean; portFromUser?: string; }> {
 	try {
 		return askToOpenDefoldEditorOrInputPort(process.platform);
 	} catch {

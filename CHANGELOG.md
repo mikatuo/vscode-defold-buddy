@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.9.8] - 2023-08-27
+- `FIX` A bug introduced after previous release. Error message that Defold editor is not found when .lua or .script file is saved and the editor is not running
+- `CHG` Annotate self and other types of .go hook functions (init, update, etc) when .go + .script files are created using the extension
+
 ## [0.9.7] - 2023-08-27
 - `ADD` "Project > Build" will prompt to input a Defold's port manually if it can't detect it automatically
 

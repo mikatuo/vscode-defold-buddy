@@ -6,6 +6,7 @@ export function registerEditorHotReloadCommand(context: vscode.ExtensionContext)
 	vscode.workspace.onDidSaveTextDocument(async (document) => {
 		if (document.fileName.endsWith('.script') || document.fileName.endsWith('.lua')) {
 			const editor = new DefoldEditor(context);
+			editor.showRunningDefoldEditorNotFoundWindow = false;
 			await editor.call(EditorCommand.hotReload);
 		}
 	});

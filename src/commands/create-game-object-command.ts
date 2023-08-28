@@ -24,24 +24,22 @@ class CreateGameObjectCommand extends CommandWithArgs<IInput, IOutput> {
     private absoluteFolder!: vscode.Uri;
     private id!: string;
     private options!: IOptions;
-    private filenames!: { gameObject: string; script: string; factory: string; };
     private result = { createdFiles: new Array<string>() };
 
     async execute(input: IInput): Promise<IOutput> {
         this.absoluteFolder = input.destination;
         this.options = await this.promptUserOptions();
 
-        this.filenames = {
-            gameObject: `${this.id}.go`,
-            script: `${this.id}.script`,
-            factory: `${this.id}.factory`,
-        };
         await this.maybeCreateScriptFile();
         await this.createGameObjectFile();
         await this.maybeCreateFactoryFile();
 
         return this.result;
     }
+
+    private getScriptFilename(): string { return `${this.id}.script`; }
+    private getGameObjectFilename(): string { return `${this.id}.go`; }
+    private getFactoryFilename(): string { return `${this.id}.factory`; }
     
     private async promptUserOptions(): Promise<IOptions> {
         this.id = await promptId();
@@ -67,20 +65,20 @@ class CreateGameObjectCommand extends CommandWithArgs<IInput, IOutput> {
 
     private async maybeCreateScriptFile() {
         if (this.options.withScript) {
-            const lines = scriptFileLines();
-            await this.saveFile(this.filenames.script, lines);
+            const lines = scriptFileLines(this.id);
+            await this.saveFile(this.getScriptFilename(), lines);
         }
     }
 
     private async createGameObjectFile() {
         const lines = this.gameObjectFileLines();
-        await this.saveFile(this.filenames.gameObject, lines);
+        await this.saveFile(this.getGameObjectFilename(), lines);
     }
 
     private async maybeCreateFactoryFile() {
         if (this.options.withFactory) {
             const lines = this.factoryFileLines();
-            await this.saveFile(this.filenames.factory, lines);
+            await this.saveFile(this.getFactoryFilename(), lines);
         }
     }
 
@@ -95,7 +93,7 @@ class CreateGameObjectCommand extends CommandWithArgs<IInput, IOutput> {
         if (this.options.withScript) {
             lines.push(`components {`);
             lines.push(`  id: "${this.id}"`);
-            lines.push(`  component: "${this.relativePath(this.filenames.script)}"`);
+            lines.push(`  component: "${this.relativePath(this.getScriptFilename())}"`);
             lines.push(`  position {`);
             lines.push(`    x: 0.0`);
             lines.push(`    y: 0.0`);
@@ -171,7 +169,7 @@ class CreateGameObjectCommand extends CommandWithArgs<IInput, IOutput> {
 
     private factoryFileLines(): string[] {
         const lines = [];
-        lines.push(`prototype: "${this.relativePath(this.filenames.gameObject)}"`);
+        lines.push(`prototype: "${this.relativePath(this.getGameObjectFilename())}"`);
         lines.push(`load_dynamically: false`);
         lines.push(``);
         return lines;
@@ -195,40 +193,45 @@ async function promptId(): Promise<string> {
     return id || placeholder;
 }
 
-function scriptFileLines(): string[] {
+function scriptFileLines(name: string): string[] {
+    const typeOfSelf = `${capitalizeSnakeCase(name)}Data`;
     return [
-        `function init(self)`,
+        `---@class ${typeOfSelf}`,
+        `---@field speed number      -- an example`,
+        `---@field position vector3  -- an example`,
+        ``,
+        `function init(self) --[[@param self ${typeOfSelf}]]`,
         `    -- Add initialization code here`,
         `    -- Learn more: https://defold.com/manuals/script/`,
         `    -- Remove this function if not needed`,
         `end`,
         ``,
-        `function final(self)`,
+        `function final(self) --[[@param self ${typeOfSelf}]]`,
         `    -- Add finalization code here`,
         `    -- Learn more: https://defold.com/manuals/script/`,
         `    -- Remove this function if not needed`,
         `end`,
         ``,
-        `function update(self, dt)`,
+        `function update(self, dt) --[[@param self ${typeOfSelf}]] --[[@param dt number]]`,
         `    -- Add update code here`,
         `    -- Learn more: https://defold.com/manuals/script/`,
         `    -- Remove this function if not needed`,
         `end`,
         ``,
-        `function fixed_update(self, dt)`,
+        `function fixed_update(self, dt) --[[@param self ${typeOfSelf}]] --[[@param dt number]]`,
         `    -- This function is only called if 'Use Fixed Timestep' is enabled in the Physics section of game.project`,
         `    -- Add update code here`,
         `    -- Learn more: https://defold.com/manuals/script/`,
         `    -- Remove this function if not needed`,
         `end`,
         ``,
-        `function on_message(self, message_id, message, sender)`,
+        `function on_message(self, message_id, message, sender) --[[@param self ${typeOfSelf}]] --[[@param message_id hash]] --[[@param message table]] --[[@param sender url]]`,
         `    -- Add message-handling code here`,
         `    -- Learn more: https://defold.com/manuals/message-passing/`,
         `    -- Remove this function if not needed`,
         `end`,
         ``,
-        `function on_input(self, action_id, action)`,
+        `function on_input(self, action_id, action) --[[@param self ${typeOfSelf}]] --[[@param action_id hash]] --[[@param action table]]`,
         `    -- Add input-handling code here. The game object this script is attached to`,
         `    -- must have acquired input focus:`,
         `    --`,
@@ -240,13 +243,30 @@ function scriptFileLines(): string[] {
         `    -- Remove this function if not needed`,
         `end`,
         ``,
-        `function on_reload(self)`,
+        `function on_reload(self) --[[@param self ${typeOfSelf}]]`,
         `    -- Add reload-handling code here`,
         `    -- Learn more: https://defold.com/manuals/hot-reload/`,
         `    -- Remove this function if not needed`,
         `end`,
         ``,
     ];
+}
+
+// name examples: 'player', 'bonus_star'
+// name examples: 'Player', 'BonusStar'
+function capitalizeSnakeCase(name: string): string {
+    if (!name) { return name; };
+    if (name.length === 1) { return name.toUpperCase(); }
+
+    // capitalize each word in the snake case name
+    const words = name.split('_');
+    return words.map(capitalizeWord).join('');
+}
+
+function capitalizeWord(word: string): string {
+    if (!word) { return ''; };
+    if (word.length === 1) { return word.toUpperCase(); }
+    return word[0].toUpperCase() + word.slice(1);
 }
 
 interface IOptions {
