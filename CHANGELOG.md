@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.9.9] - 2023-08-29
+- `FIX` Fix errors when bundling a project with assets that have ext.manifest files
+
 ## [0.9.8] - 2023-08-27
 - `FIX` A bug introduced after previous release. Error message that Defold editor is not found when .lua or .script file is saved and the editor is not running
 - `CHG` Annotate self and other types of .go hook functions (init, update, etc) when .go + .script files are created using the extension

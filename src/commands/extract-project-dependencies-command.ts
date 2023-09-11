@@ -27,11 +27,7 @@ export async function registerUnzipProjectAssetsCommand(context: vscode.Extensio
             //await moveAssetIncludeFolderIntoAnnotationsFolder(unzippedAsset);
             state.assets.push(toAssetInfo(unzippedAsset, filename));
         }
-        // delete 'ext.manifest' files otherwise they cause errors when bundling
-        const files = await vscode.workspace.findFiles('.defold/assets/ext.manifest');
-        for (const file of files) {
-            await vscode.workspace.fs.delete(file);
-        }
+        await deleteExtManifestFilesToNotHaveBuildErrors();
         //await deleteFilesFromAssetsFolder('.cpp');
         await addLuaWorkspaceLibrariesIntoSettings();
         await StateMemento.save(context, state);
@@ -62,6 +58,14 @@ function assetAnnotationsAreUpToDate(state: IState, filenames: [string, vscode.F
 async function removeLuaWorkspaceLibrariesFromSettings() {
     const workspaceConfig = vscode.workspace.getConfiguration();
     await removeFromConfigArray(workspaceConfig, 'Lua.workspace.library', x => x.startsWith(config.assetsAnnotationsFolder));
+}
+
+async function deleteExtManifestFilesToNotHaveBuildErrors() {
+    // delete 'ext.manifest' files otherwise they cause errors when bundling
+    const files = await vscode.workspace.findFiles('.defold/assets/**/ext.manifest');
+    for (const file of files) {
+        await vscode.workspace.fs.delete(file);
+    }
 }
 
 async function addLuaWorkspaceLibrariesIntoSettings() {
