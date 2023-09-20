@@ -41,6 +41,7 @@ class CreateLuaModuleCommand extends CommandWithArgs<IInput, IOutput> {
     async execute(input: IInput): Promise<IOutput> {
         this.absoluteFolder = input.destination;
         this.name = await promptName();
+        if (!this.name) { return this.result; }
 
         this.filenames = {
             lua: `${this.name}.lua`,
@@ -121,7 +122,8 @@ async function ensureLuaPreprocessorExtensionIsInstalled() {
         return;
     }
     // add the extension
-    const extensionSourceUrl = 'https://github.com/defold/extension-lua-preprocessor/archive/refs/tags/1.0.0.zip';
+    // TODO: fetch the latest version from the github releases
+    const extensionSourceUrl = 'https://github.com/defold/extension-lua-preprocessor/archive/refs/tags/1.1.3.zip';
     const values = config.get({ section: '[project]' });
     const dependencyIndexes = values.filter((v) => v.key.startsWith('dependencies'))
         .map((v) => parseInt(v.key.split('#')[1]))

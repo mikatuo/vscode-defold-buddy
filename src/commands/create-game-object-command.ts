@@ -13,7 +13,9 @@ export function registerCreateGameObjectCommand(context: vscode.ExtensionContext
 		const cmd = new CreateGameObjectCommand(context);
 		const result = await cmd.execute({ destination: folder });
         
-        vscode.window.showInformationMessage(`Created files: ${result.createdFiles.join(', ')}`);
+        if (result.createdFiles.length) {
+            vscode.window.showInformationMessage(`Created files: ${result.createdFiles.join(', ')}`);
+        }
 	}));
 };
 
@@ -28,7 +30,9 @@ class CreateGameObjectCommand extends CommandWithArgs<IInput, IOutput> {
 
     async execute(input: IInput): Promise<IOutput> {
         this.absoluteFolder = input.destination;
-        this.options = await this.promptUserOptions();
+        const optionsFromUser = await this.promptUserOptions();
+        if (!optionsFromUser) { return this.result; }
+        this.options = optionsFromUser;
 
         await this.maybeCreateScriptFile();
         await this.createGameObjectFile();
@@ -41,25 +45,12 @@ class CreateGameObjectCommand extends CommandWithArgs<IInput, IOutput> {
     private getGameObjectFilename(): string { return `${this.id}.go`; }
     private getFactoryFilename(): string { return `${this.id}.factory`; }
     
-    private async promptUserOptions(): Promise<IOptions> {
-        this.id = await promptId();
+    private async promptUserOptions(): Promise<IOptions | undefined> {
+        const idFromUser = await promptId();
+        if (!idFromUser) { return; }
+        this.id = idFromUser;
 
-        const selectedChoises = await vscode.window.showQuickPick([
-            { label: `#co`, description: 'collision object', picked: true, prop: 'withCollisionObject' },
-            { label: `#sprite`, description: 'sprite', picked: true, prop: 'withSprite' },
-            { label: `${this.id}.script`, picked: true, prop: 'withScript' },
-            { label: `${this.id}.factory`, prop: 'withFactory' },
-        ], {
-            canPickMany: true,
-		    ignoreFocusOut: true,
-            placeHolder: 'Choose what to create',
-        }) || [];
-
-        const selectedOptions = selectedChoises.reduce((options, choise) => {
-            options[choise.prop] = true;
-            return options;
-        }, <any>{}) as IOptions;
-
+        const selectedOptions = await promptWhatObjectsToCreate(this.id);
         return selectedOptions;
     }
 
@@ -182,7 +173,7 @@ class CreateGameObjectCommand extends CommandWithArgs<IInput, IOutput> {
     }
 }
 
-async function promptId(): Promise<string> {
+async function promptId(): Promise<string | undefined> {
     const placeholder = 'player';
     const id = await vscode.window.showInputBox({
         title: 'Enter id of the new Game Object',
@@ -190,7 +181,27 @@ async function promptId(): Promise<string> {
         ignoreFocusOut: true,
     });
     
-    return id || placeholder;
+    return id?.trim();
+}
+
+async function promptWhatObjectsToCreate(id: string): Promise<IOptions | undefined> {
+    const selectedChoises = await vscode.window.showQuickPick([
+        { label: `#co`, description: 'collision object', picked: true, prop: 'withCollisionObject' },
+        { label: `#sprite`, description: 'sprite', picked: true, prop: 'withSprite' },
+        { label: `${id}.script`, picked: true, prop: 'withScript' },
+        { label: `${id}.factory`, prop: 'withFactory' },
+    ], {
+        canPickMany: true,
+        ignoreFocusOut: true,
+        placeHolder: 'Choose what to create',
+    });
+    if (!selectedChoises) { return; }
+
+    const selectedOptions = selectedChoises.reduce((options, choise) => {
+        options[choise.prop] = true;
+        return options;
+    }, <any>{}) as IOptions;
+    return selectedOptions;
 }
 
 function scriptFileLines(name: string): string[] {

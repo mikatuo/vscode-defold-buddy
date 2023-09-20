@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.9.10] - 2023-09-20
+- `FIX` Fix annoying bugs when "Create Game Object", "Create Gui", "Create Lua Module" were generating files even when a user clicked Esc button
+
 ## [0.9.9] - 2023-08-29
 - `FIX` Fix errors when bundling a project with assets that have ext.manifest files
 

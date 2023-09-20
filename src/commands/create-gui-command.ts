@@ -13,7 +13,9 @@ export function registerCreateGuiCommand(context: vscode.ExtensionContext) {
 		const cmd = new CreateGuiCommand(context);
 		const result = await cmd.execute({ destination: folder });
         
-        vscode.window.showInformationMessage(`Created files: ${result.createdFiles.join(', ')}`);
+        if (result.createdFiles.length) {
+            vscode.window.showInformationMessage(`Created files: ${result.createdFiles.join(', ')}`);
+        }
 	}));
 };
 
@@ -29,7 +31,9 @@ class CreateGuiCommand extends CommandWithArgs<IInput, IOutput> {
 
     async execute(input: IInput): Promise<IOutput> {
         this.absoluteFolder = input.destination;
-        this.options = await this.promptUserOptions();
+        const optionsFromUser = await this.promptUserOptions();
+        if (!optionsFromUser) { return this.result; }
+        this.options = optionsFromUser;
 
         this.filenames = {
             gui: `${this.id}.gui`,
@@ -41,22 +45,12 @@ class CreateGuiCommand extends CommandWithArgs<IInput, IOutput> {
         return this.result;
     }
     
-    private async promptUserOptions(): Promise<IOptions> {
-        this.id = await promptId();
+    private async promptUserOptions(): Promise<IOptions | undefined> {
+        const idFromUser = await promptId();
+        if (!idFromUser) { return; }
+        this.id = idFromUser;
 
-        const selectedChoises = await vscode.window.showQuickPick([
-            { label: `${this.id}.gui_script`, picked: true, prop: 'withGuiScript' },
-        ], {
-            canPickMany: true,
-		    ignoreFocusOut: true,
-            placeHolder: 'Choose what to create',
-        }) || [];
-
-        const selectedOptions = selectedChoises.reduce((options, choise) => {
-            options[choise.prop] = true;
-            return options;
-        }, <any>{}) as IOptions;
-
+        const selectedOptions = await promptWhatObjectsToCreate(this.id);
         return selectedOptions;
     }
 
@@ -111,7 +105,7 @@ class CreateGuiCommand extends CommandWithArgs<IInput, IOutput> {
     }
 }
 
-async function promptId(): Promise<string> {
+async function promptId(): Promise<string | undefined> {
     const placeholder = 'menu';
     const id = await vscode.window.showInputBox({
         title: 'Enter id of the new Gui',
@@ -119,7 +113,24 @@ async function promptId(): Promise<string> {
         ignoreFocusOut: true,
     });
     
-    return id || placeholder;
+    return id?.trim();
+}
+
+async function promptWhatObjectsToCreate(id: string): Promise<IOptions | undefined> {
+    const selectedChoises = await vscode.window.showQuickPick([
+        { label: `${id}.gui_script`, picked: true, prop: 'withGuiScript' },
+    ], {
+        canPickMany: true,
+        ignoreFocusOut: true,
+        placeHolder: 'Choose what to create',
+    });
+    if (!selectedChoises) { return; }
+
+    const selectedOptions = selectedChoises.reduce((options, choise) => {
+        options[choise.prop] = true;
+        return options;
+    }, <any>{}) as IOptions;
+    return selectedOptions;
 }
 
 function guiScriptFileLines(): string[] {
