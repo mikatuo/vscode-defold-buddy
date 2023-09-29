@@ -10,11 +10,12 @@ import { registerCreateGuiCommand } from './commands/create-gui-command';
 import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
 import { registerEditorProjectBuildCommand } from './commands/editor-project-build-command';
 import { registerEditorHotReloadCommand } from './commands/editor-hot-reload-command';
-import { getWorkspacePath } from './utils/common';
+import { getWorkspacePath, openDefoldEditor } from './utils/common';
 import { registerUnzipProjectAssetsCommand } from './commands/extract-project-dependencies-command';
 import { StateMemento } from './persistence/state-memento';
 import { constants } from './constants';
 import { migrateFromOldVersions } from './migrations/migrate-from-old-versions';
+import { DefoldEditor, EditorCommand } from './editor/defold-editor';
 
 // TODO: annotations for Defold to work without copying the files into the project
 //	     ^ currently, there is no way to do that without specifying the absolute path, which I don't like
@@ -35,6 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	intellisenseForProjectDependencies(context);
 
 	maybeAskToInitializeCurrentProject(context);
+	maybeAskToOpenDefoldEditor(context);
 
 	// index game files for autocompletion
 	vscode.commands.executeCommand('vscode-defold-ide.indexDefoldFiles');
@@ -93,6 +95,15 @@ async function maybeAskToInitializeCurrentProject(context: vscode.ExtensionConte
 			await context.globalState.update('neverAskToInitializeCurrentProject', true);
 		}
 	});
+}
+
+async function maybeAskToOpenDefoldEditor(context: vscode.ExtensionContext) {
+	const neverAsk = await context.globalState.get<boolean>('neverAskToOpenDefoldDuringActivation', false);
+	if (neverAsk) { return; }
+	const editor = new DefoldEditor(context);
+	if (!await editor.findRunningEditor()) {
+		askToOpenDefoldEditorOrInputPort(context);
+	}
 }
 
 function registerUrlReferenceProvider() {
@@ -158,3 +169,34 @@ async function updateAssetsOnce() {
 	updatingAssets = false;
 }
 
+async function askToOpenDefoldEditorOrInputPort(context: vscode.ExtensionContext): Promise<{ port?: string }> {
+	const answer = await vscode.window.showInformationMessage(
+		'Running Defold editor is not found',
+		'Open Defold', 'Input Port', 'Never ask again'
+	);
+	switch (answer) {
+		case 'Open Defold':
+			await openDefoldEditor('game.project', process.platform);
+			return {};
+		case 'Input Port':
+			const port = await askUserForPort();
+			if (!port) { return {}; }
+			return { port: port };
+		case 'Never ask again':
+			if (answer === 'Never ask again') {
+				await context.globalState.update('neverAskToOpenDefoldDuringActivation', true);
+			}
+		default:
+			return {};
+	}
+}
+
+async function askUserForPort(): Promise<string | undefined> {
+	const portFromUser = await vscode.window.showInputBox({
+		title: 'Port of the running Defold editor',
+		prompt: 'How to find a port of your running Defold editor:\n In the menu open "Debug" > "Open Web Profiler". The profiler will open in a browser. Copy the port from the URL. In example, for http://localhost:XXXXX/engine-profiler the port will be XXXXX. Input the port into the text input above.',
+		placeHolder: 'xxxxx',
+		ignoreFocusOut: true,
+	});
+	return portFromUser;
+}

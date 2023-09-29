@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2023-09-28
+- `ADD` Ask to open Defold editor during activation
+
+## [0.9.11] - 2023-09-28
+- `ADD` Add sponsor url to https://github.com/sponsors/defold
+
 ## [0.9.10] - 2023-09-20
 - `FIX` Fix annoying bugs when "Create Game Object", "Create Gui", "Create Lua Module" were generating files even when a user clicked Esc button
 

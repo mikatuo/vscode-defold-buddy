@@ -50,32 +50,33 @@ export class DefoldEditor {
         this.context = context;
     }
     
-    async call(command: EditorCommand): Promise<boolean> {
-        return await this.tryToFindRunningEditorAndExecuteCommand(command);
+    async executeCommand(command: EditorCommand): Promise<void> {
+        let portOfRunningEditor = await this.findRunningEditorOrAskToOpenOne(true /* detect port */);
+		if (portOfRunningEditor) {
+			await executeCommandInDefoldEditor(portOfRunningEditor, command);
+		}
     }
 
-    private async tryToFindRunningEditorAndExecuteCommand(command: EditorCommand, detectPort = true): Promise<boolean> {
-        let portOfRunningEditor = await getSavedPortOfRunningEditor(this.context);
-		if (!portOfRunningEditor && detectPort) {
-			portOfRunningEditor = await tryToFindEditorPortFromLogFiles();
+	async findRunningEditor(detectPort = true): Promise<string | undefined> {
+		let portOfRunningEditor = await getSavedPortOfRunningEditor(this.context);
+		if (portOfRunningEditor) { return portOfRunningEditor; }
+		if (detectPort) {
+			portOfRunningEditor = await tryToFindRunningEditorPortFromLogFiles();
 		}
         await savePort(this.context, portOfRunningEditor);
+		return portOfRunningEditor;
+	}
 
-		if (!portOfRunningEditor && this.showRunningDefoldEditorNotFoundWindow) {
+	async findRunningEditorOrAskToOpenOne(detectPort = true): Promise<string | undefined> {
+		const portOfRunningEditor = this.findRunningEditor(detectPort);
+		if (portOfRunningEditor) { return portOfRunningEditor; }
+
+		if (this.showRunningDefoldEditorNotFoundWindow) {
 			const result = await askToOpenDefoldEditorOrInputPortOrShowErrorMessage();
-			if (result.portFromUser) { await savePort(this.context, result.portFromUser); }
-			if (result.retry) { return await this.tryToFindRunningEditorAndExecuteCommand(command, false /* do not detect port */); }
-			return false;
+			if (result.port) { await savePort(this.context, result.port); }
+			if (result.retry) { return await this.findRunningEditorOrAskToOpenOne(false /* do not detect port */); }
 		}
-		if (!portOfRunningEditor) { return false; }
-
-		const isRunning = await isDefoldEditorRunning(portOfRunningEditor);
-		if (!isRunning) {
-			return false;
-		}
-
-		return await executeCommandInDefoldEditor(portOfRunningEditor!, command);
-    }
+	}
 }
 
 async function executeCommandInDefoldEditor(editorPort: string, command: EditorCommand): Promise<boolean> {
@@ -100,7 +101,7 @@ async function getSavedPortOfRunningEditor(context: vscode.ExtensionContext): Pr
 	}
 }
 
-async function tryToFindEditorPortFromLogFiles(): Promise<string | undefined> {
+async function tryToFindRunningEditorPortFromLogFiles(): Promise<string | undefined> {
 	const repo = new DefoldEditorLogsRepository();
 	const recentLogFile = await repo.findRecentLogFile();
 	if (!recentLogFile) { return undefined; } // failed to find the recent log file
@@ -157,9 +158,9 @@ async function extractEditorPortsFrom(logFile: string): Promise<string[]> {
 	return result.reverse();
 }
 
-function askToOpenDefoldEditorOrInputPortOrShowErrorMessage(): Promise<{ retry: boolean; portFromUser?: string; }> {
+function askToOpenDefoldEditorOrInputPortOrShowErrorMessage(): Promise<{ retry: boolean; port?: string; }> {
 	try {
-		return askToOpenDefoldEditorOrInputPort(process.platform);
+		return askToOpenDefoldEditorOrInputPort();
 	} catch {
 		vscode.window.showErrorMessage('Failed to start Defold editor. Please start it and try again.');
 		return Promise.resolve(doNotRetryBuildingProject);
@@ -167,14 +168,14 @@ function askToOpenDefoldEditorOrInputPortOrShowErrorMessage(): Promise<{ retry: 
 }
 
 const doNotRetryBuildingProject = { retry: false };
-async function askToOpenDefoldEditorOrInputPort(platform: NodeJS.Platform): Promise<{ retry: boolean; port?: string; }> {
+async function askToOpenDefoldEditorOrInputPort(): Promise<{ retry: boolean; port?: string; }> {
 	const answer = await vscode.window.showInformationMessage(
-		`Running Defold editor is not found`,
-		'Open Defold', `Input Port`, 'Cancel'
+		'Running Defold editor is not found',
+		'Open Defold', 'Input Port', 'Cancel'
 	);
 	switch (answer) {
 		case 'Open Defold':
-			await openDefoldEditor('game.project', platform);
+			await openDefoldEditor('game.project', process.platform);
 			return doNotRetryBuildingProject;
 		case 'Input Port':
 			const port = await askUserForPort();
