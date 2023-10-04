@@ -4,7 +4,6 @@ import { registerGenerateManifestCommand } from './commands/generate-manifest-co
 import { registerUrlCompletionItemProvider } from './completion/url-completion-provider';
 import { registerGenerateHashesModuleCommand } from './commands/generate-hashes-module';
 import { registerIndexDefoldFilesCommand } from './commands/index-defold-files-command';
-import { registerListenGameLogsCommand } from './wip/reloadGameCommand';
 import { registerCreateGameObjectCommand } from './commands/create-game-object-command';
 import { registerCreateGuiCommand } from './commands/create-gui-command';
 import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
@@ -15,7 +14,11 @@ import { registerUnzipProjectAssetsCommand } from './commands/extract-project-de
 import { StateMemento } from './persistence/state-memento';
 import { constants } from './constants';
 import { migrateFromOldVersions } from './migrations/migrate-from-old-versions';
-import { DefoldEditor, EditorCommand } from './editor/defold-editor';
+import { DefoldEditor } from './editor/defold-editor';
+import { config } from './config';
+import { registerEditorProjectFetchLibrariesCommand } from './commands/editor-project-fetch-libraries-command';
+import { registerEditorDebugStartOrAttachCommand } from './commands/editor-debug-start-or-attach-command';
+import { OutputChannels } from './outputChannels';
 
 // TODO: annotations for Defold to work without copying the files into the project
 //	     ^ currently, there is no way to do that without specifying the absolute path, which I don't like
@@ -31,6 +34,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	await migrateFromOldVersions(context);
 
 	registerCommands(context);
+	registerEditorCommands(context);
 	registerUrlCompletionItemProvider(context);
 	registerUrlReferenceProvider();
 	intellisenseForProjectDependencies(context);
@@ -43,6 +47,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	
 	// TODO: EXPERIMENTAL - register file watchers
 	//reIndexDefoldFilesOnChanges();
+
+	createDefoldBuddyOutputChannel(config.outputChannelName);
 }
 
 export function deactivate() {}
@@ -57,8 +63,12 @@ function registerCommands(context: vscode.ExtensionContext) {
 	registerCreateGameObjectCommand(context);
 	registerCreateGuiCommand(context);
 	registerCreateLuaModuleCommand(context);
-	// editor commands
+}
+
+function registerEditorCommands(context: vscode.ExtensionContext) {
 	registerEditorProjectBuildCommand(context);
+	registerEditorProjectFetchLibrariesCommand(context);
+	registerEditorDebugStartOrAttachCommand(context);
 	registerEditorHotReloadCommand(context);
 }
 
@@ -171,17 +181,15 @@ async function updateAssetsOnce() {
 
 async function askToOpenDefoldEditorOrInputPort(context: vscode.ExtensionContext): Promise<{ port?: string }> {
 	const answer = await vscode.window.showInformationMessage(
-		'Running Defold editor is not found',
-		'Open Defold', 'Input Port', 'Never ask again'
+		'Open Defold editor for current project?',
+		'Open Defold', 'No', 'Never ask again'
 	);
 	switch (answer) {
 		case 'Open Defold':
 			await openDefoldEditor('game.project', process.platform);
 			return {};
-		case 'Input Port':
-			const port = await askUserForPort();
-			if (!port) { return {}; }
-			return { port: port };
+		case 'No':
+			return {};
 		case 'Never ask again':
 			if (answer === 'Never ask again') {
 				await context.globalState.update('neverAskToOpenDefoldDuringActivation', true);
@@ -199,4 +207,8 @@ async function askUserForPort(): Promise<string | undefined> {
 		ignoreFocusOut: true,
 	});
 	return portFromUser;
+}
+
+function createDefoldBuddyOutputChannel(name: string) {
+	OutputChannels.defoldBuddy = vscode.window.createOutputChannel(name, 'defold-buddy-console-output');
 }

@@ -4,7 +4,7 @@
   "description": "Tools for Defold to make your life easier and coding in Lua nicer.",
   "publisher": "mikatuo",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.1.6",
   "repository": {
     "type": "git",
     "url": "https://github.com/mikatuo/vscode-defold-ide"
@@ -44,58 +44,78 @@
       {
         "command": "vscode-defold-ide.initialize",
         "title": "Initialize",
-        "category": "Defold"
+        "category": "Defold Buddy"
       },
       {
         "command": "vscode-defold-ide.generateManifest",
         "title": "Generate manifest (reduce game bundle size)",
         "shortTitle": "Generate manifest",
-        "category": "Defold"
+        "category": "Defold Buddy"
       },
       {
         "command": "vscode-defold-ide.generateHashesModule",
         "title": "Generate module with hashes (alpha)",
-        "category": "Defold"
+        "category": "Defold Buddy"
       },
       {
         "command": "vscode-defold-ide.indexDefoldFiles",
         "title": "Index game files for autocompletion",
-        "category": "Defold"
+        "category": "Defold Buddy"
       },
       {
         "command": "vscode-defold-ide.createGameObject",
         "title": "Create Game Object",
-        "category": "Defold"
+        "category": "Defold Buddy"
       },
       {
         "command": "vscode-defold-ide.createGui",
         "title": "Create Gui",
-        "category": "Defold"
+        "category": "Defold Buddy"
       },
       {
         "command": "vscode-defold-ide.createLuaModule",
         "title": "Create Lua Module",
-        "category": "Defold"
+        "category": "Defold Buddy"
       },
       {
         "command": "vscode-defold-ide.projectBuild",
-        "title": "Project > Build",
-        "category": "Defold"
+        "title": "[Editor] Project > Build",
+        "category": "Defold Buddy"
+      },
+      {
+        "command": "vscode-defold-ide.projectFetchLibraries",
+        "title": "[Editor] Project > Fetch Libraries",
+        "category": "Defold Buddy"
+      },
+      {
+        "command": "vscode-defold-ide.debugStartOrAttach",
+        "title": "[Editor] Debug  > Start / Attach",
+        "category": "Defold Buddy"
       },
       {
         "command": "vscode-defold-ide.hotReload",
         "title": "Hot reload",
-        "category": "Defold",
+        "category": "Defold Buddy (Editor)",
         "enablement": "false"
       },
       {
         "command": "vscode-defold-ide.unzipDependencies",
         "title": "Unzip dependencies",
-        "category": "Defold",
+        "category": "Defold Buddy",
         "enablement": "false"
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "vscode-defold-ide.createGameObject",
+          "when": "false"
+        },
+        {
+          "command": "vscode-defold-ide.createGui",
+          "when": "false"
+        }
+      ],
       "explorer/context": [
         {
           "command": "vscode-defold-ide.createGameObject",
@@ -113,10 +133,24 @@
           "when": "explorerResourceIsFolder"
         }
       ]
-    }
+    },
+    "languages": [
+      {
+        "id": "defold-buddy-console-output",
+        "mimetypes": [
+          "text/x-code-output"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "defold-buddy-console-output",
+        "scopeName": "defold-buddy-console.output",
+        "path": "./syntaxes/defold-console.tmLanguage"
+      }
+    ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run esbuild-base -- --minify",
     "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
@@ -124,6 +158,10 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "publish-pre-release": "vsce publish --pre-release",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
@@ -131,9 +169,11 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
     "@types/vscode": "^1.74.0",
+    "@types/ws": "^8.5.6",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
     "@vscode/test-electron": "^2.2.0",
+    "@vscode/vsce": "^2.21.1",
     "esbuild": "^0.17.4",
     "eslint": "^8.28.0",
     "glob": "^8.0.3",
@@ -144,7 +184,9 @@
     "adm-zip": "^0.5.10",
     "axios": "^1.2.3",
     "node-ssdp": "^4.0.1",
-    "protobufjs": "^7.2.0"
+    "protobufjs": "^7.2.0",
+    "rxjs": "^7.8.1",
+    "ws": "^8.14.2"
   },
   "extensionDependencies": [
     "sumneko.lua"

@@ -5,6 +5,9 @@ const readline = require('node:readline');
 const { once } = require('node:events');
 import { DefoldEditorLogsRepository } from "../utils/defold-editor-logs-repository";
 import { openDefoldEditor } from '../utils/common';
+import { Subject } from 'rxjs';
+import { findRunningDefoldEngineService } from '../wip/findRunningDefoldGame';
+import WebSocket = require('ws');
 
 const editorBaseUrl = 'http://localhost';
 
@@ -15,7 +18,7 @@ export enum EditorCommand {
     debuggerBreak = 'debugger-break', // Break into the debugger
     debuggerContinue = 'debugger-continue', // Resume execution in the debugger
     debuggerDetach = 'debugger-detach', // Detach the debugger from the running project
-    debuggerStart = 'debugger-start', // Start the project with the debugger, or attach the debugger to the running project
+    debuggerStartOrAttach = 'debugger-start', // Start the project with the debugger, or attach the debugger to the running project
     debuggerStepInto = 'debugger-step-into', // Step into the current expression in the debugger
     debuggerStepOut = 'debugger-step-out', // Step out of the current expression in the debugger
     debuggerStepOver = 'debugger-step-over', // Step over the current expression in the debugger
@@ -45,16 +48,19 @@ export enum EditorCommand {
 export class DefoldEditor {
     private context: vscode.ExtensionContext;
 	showRunningDefoldEditorNotFoundWindow: boolean = true;
+    $consoleLogs = new Subject<string>();
     
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
     }
     
-    async executeCommand(command: EditorCommand): Promise<void> {
+    async executeCommand(command: EditorCommand): Promise<{ running: boolean, port?: string }> {
         let portOfRunningEditor = await this.findRunningEditorOrAskToOpenOne(true /* detect port */);
 		if (portOfRunningEditor) {
 			await executeCommandInDefoldEditor(portOfRunningEditor, command);
+			return { running: true, port: portOfRunningEditor };
 		}
+		return { running: false };
     }
 
 	async findRunningEditor(detectPort = true): Promise<string | undefined> {
@@ -67,8 +73,25 @@ export class DefoldEditor {
 		return portOfRunningEditor;
 	}
 
+    async listenToConsoleLogs(port: string) {
+		const engineService = await findRunningDefoldEngineService();
+        if (!engineService) { return; }
+
+        const editorConsole = await loadInitialDefoldEditorConsoleInfo(port);
+
+		// output initial logs from the Defold editor
+        for (const editorLogLine of editorConsole.logs!) {
+            this.$consoleLogs.next(editorLogLine);
+        }
+
+		// before we start streaming logs from the editor
+		// there is a chance that some of the logs will be missed
+        const remotery = { address: editorConsole.remoteryAddress };
+        streamDefoldEditorConsoleLogs(remotery, this.$consoleLogs);
+    }
+
 	async findRunningEditorOrAskToOpenOne(detectPort = true): Promise<string | undefined> {
-		const portOfRunningEditor = this.findRunningEditor(detectPort);
+		const portOfRunningEditor = await this.findRunningEditor(detectPort);
 		if (portOfRunningEditor) { return portOfRunningEditor; }
 
 		if (this.showRunningDefoldEditorNotFoundWindow) {
@@ -194,4 +217,66 @@ async function askUserForPort(): Promise<string | undefined> {
 		ignoreFocusOut: true,
 	});
 	return portFromUser;
+}
+
+async function loadInitialDefoldEditorConsoleInfo(port: string) {
+	return await loadDefoldEditorLogsWithRemoteryAddress({
+		port: port,
+		retries: 30,
+		retryDelayMs: 500,
+	});
+}
+
+async function loadDefoldEditorLogsWithRemoteryAddress({ port, retries, retryDelayMs }: { port: string, retries: number, retryDelayMs: number }): Promise<{ success: boolean, logs?: string[], remoteryAddress?: string }> {
+    const res = await loadEditorConsoleLogs(port);
+    if (res.success) {
+		const remoteryAddress = extractRemoteryAddressFrom(res.logs!);
+		if (remoteryAddress) {
+			return { success: true, logs: res.logs, remoteryAddress };
+		}
+	}
+    if (retries === 0) { return { success: false }; }
+    await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+    return loadDefoldEditorLogsWithRemoteryAddress({ port, retries: retries - 1, retryDelayMs });
+}
+
+function extractRemoteryAddressFrom(logs: string[]): string | undefined {
+    const logLineWithRemoteryAddress = logs.find((line: string) => line.startsWith('INFO:DLIB: Initialized Remotery'));
+    if (!logLineWithRemoteryAddress) { return; }
+
+    // parse address from 'INFO:DLIB: Initialized Remotery (ws://127.0.0.1:17815/rmt)'
+    const remoteryAddress = logLineWithRemoteryAddress.match(/ws:\/\/(\d+\.\d+\.\d+\.\d+):(\d+)\/rmt/);
+	return remoteryAddress && remoteryAddress[0] || undefined;
+}
+
+async function loadEditorConsoleLogs(port: string): Promise<{ success: boolean, logs?: string[] }> {
+    const response = await axios.get(`http://localhost:${port}/console`);
+    if (response.status < 200 || response.status >= 300) { return { success: false }; }
+    if (!response.data.lines.length) { return { success: false }; }
+
+    return {
+        success: true,
+        logs: response.data.lines,
+    };
+}
+
+function streamDefoldEditorConsoleLogs(params: { ip?: string; port?: string; address?: string }, $output: Subject<string>) {
+    const address = params.address || `ws://${params.ip}:${params.port}/`;
+    const ws = new WebSocket(address);
+
+    ws.on('error', function (err: any) {
+		console.error(`Failed to read logs from Defold's remotery`, err);
+	});
+
+    const ignoredMessages = ['SMPL', 'PSNP', 'PING'];
+    ws.on('message', function (data: Buffer) {
+        let dataString = data.toString('utf8');
+        if (ignoredMessages.some(msg => dataString.startsWith(msg))) { return; }
+        if (dataString.startsWith('LOGM')) {
+            dataString.replace(/^LOGM/, '');
+        }
+        const length = data.slice(8, 12).reduce((acc, val) => acc + val, 0);
+        dataString = data.toString('utf8', 12).slice(0, length);
+		$output.next(dataString);
+    });
 }

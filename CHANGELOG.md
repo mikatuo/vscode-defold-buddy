@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [1.1.6] - 2023-10-03
+- `CHG` New logo
+
+## [1.1.3] - 2023-10-01
+- `ADD` Add "Project > Fetch Libraries", "Debug > Start / Attach" commands
+- `ADD` Show game logs in "Defold Buddy" channel when running "Project > Build" or "Debug > Start / Attach" commands
+- `CHG` Change command categories to "Defold Buddy"
+- `CHG` Quality of life improvements such as progress indicators
+
 ## [1.0.0] - 2023-09-28
 - `ADD` Ask to open Defold editor during activation
 
