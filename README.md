@@ -1,12 +1,24 @@
 # Defold Buddy
 
-Tools for Defold to make your life a bit easier and coding experience in Lua nicer.
+Tools for Defold to make your life easier and coding experience nicer.<br/>
+The buddy can "talk" to your Defold Editor to automate boring stuff. You will have less reasons to alt-tab between VS Code and Defold Editor because you can run your game, fetch libraries from VS Code.
 
 ## Features
 
-### IntelliSense
+- [x] IntelliSense for Defold API and project dependencies
+- [x] Autocompletion for Defold URLs of your project
+- [x] Open Defold Editor from VS Code
+- [x] Build (run) your game via Defold Editor from VS Code
+- [x] Fetch libraries via Defold Editor from VS Code
+- [x] Hot reloading for script and lua files on save
+- [x] Create a complex Game Object file from Explorer context menu
+- [x] Generate manifest (reduce game bundle size) - also available in Defold Editor
 
-<details><summary>Demo (Defold API)</summary><p>
+## IntelliSense for Defold API and project dependencies
+
+![GitHub release](https://img.shields.io/github/v/release/mikatuo/defold-lua-annotations.svg?include_prereleases=&sort=semver&color=)
+
+<details><summary>Demo (Defold API)...</summary><p>
 
 1. Open a Defold project
 2. You should see a prompt to initialize the extension
@@ -23,14 +35,14 @@ or
 ![213931566-78acccca-6335-4407-8e1a-3ab000899525](https://user-images.githubusercontent.com/7230306/222926916-b070093e-4468-4ced-b00f-6c603e56376a.gif)
 </p></details>
 
-<details><summary>Demo (project dependencies)</summary><p>
+<details><summary>Demo (project dependencies)...</summary><p>
 
 ![2647bce06606342c31c08006257d11e0173b23f5](https://user-images.githubusercontent.com/7230306/222926955-41f35bf5-bba3-4a96-8399-5edb8179e482.gif)
 </p></details>
 
-### Autocompletion for Defold URLs in `.script` and `.lua` files
+## Autocompletion for Defold URLs
 
-<details><summary>Demo</summary><p>
+<details><summary>Demo...</summary><p>
 
 Note: read about the [addressing](https://defold.com/manuals/addressing/) if you are not familiar with the concept
 
@@ -45,9 +57,9 @@ For now the suggestions are not refreshed automatically when you make any change
 2. Run "Defold: Index game files for autocompletion" when you need to refresh the autocompletion
 </details>
 
-### Run "Project > Build" from VSCode
+## Build (run) your game via Defold Editor from VSCode
 
-<details><summary>Demo</summary><p>
+<details><summary>Demo...</summary><p>
 
 Note: requires Defold editor running in the background
 
@@ -56,29 +68,33 @@ Note: you can [set a hotkey](https://code.visualstudio.com/docs/getstarted/keybi
 ![81887c48d3bad6b29c9dbb49bea0c179d652cb05](https://user-images.githubusercontent.com/7230306/222926974-5c4d7e5b-a29d-427b-a33e-abb29b09701c.gif)
 </p></details>
 
-### Hot reloading after .script and .lua files are saved
+## Hot reloading for script and lua files on save
 
-<details><summary>Demo</summary><p>
+After a `.script` or `.lua` file is saved it is automatically hot-reloaded if the game is running.
+
+<details><summary>Demo...</summary><p>
 
 Note: read about [hot reloading](https://defold.com/manuals/hot-reload/) in Defold
 
 1. Open Defold editor
-2. Run your game
+2. Run your game via the editor
 3. Modify a .script file and save it, the modified file should be hot-reloaded
 
 https://user-images.githubusercontent.com/7230306/222926994-3aa97bc2-74c4-48f7-a183-176b024d2a41.mp4
 </p></details>
 
-### Create `.go` + `.script` + `.factory` files from Explorer context menu
+## Create a complex Game Object file from Explorer context menu
 
-<details><summary>Demo</summary><p>
+Create a Game Object file (.go) with components (sprite, script) and a factory file (`.factory`) for that Game Object with less clicks
+
+<details><summary>Demo...</summary><p>
 
 ![147121c5ed7f8954862f3a27fee4cf8cf1efaa16](https://user-images.githubusercontent.com/7230306/222927012-4947ddb0-7b93-4bed-8e5e-4f96cb757d6f.gif)
 </p></details>
 
-### Generate manifest (reduce game bundle size)
+## Generate manifest (reduce game bundle size)
 
-<details><summary>Demo</summary><p>
+<details><summary>Demo...</summary><p>
 
 You can generate the app manifest from Defold editor:
 
@@ -91,10 +107,14 @@ Or from VSCode:
 
 ---
 
-**Credit**
+#### Feedback
 
-- Manifest generation code was copy pasted from [Defold App Manifest generator](https://github.com/britzl/manifestation) by [britzl](https://github.com/britzl).
+If you would like to collaborate, contribute or request a feature feel free to do it at [Github](https://github.com/mikatuo/vscode-defold-buddy)
 
-**Resources**
+#### Credit
 
-- Annotations used in this extensions are generated with [Defold Lua Annotations](https://github.com/mikatuo/defold-lua-annotations).
+Manifest generation code was copy pasted from [Defold App Manifest generator](https://github.com/britzl/manifestation) by [britzl](https://github.com/britzl).
+
+#### Resources
+
+Annotations used in this extensions are generated with [Defold Lua Annotations](https://github.com/mikatuo/defold-lua-annotations).
