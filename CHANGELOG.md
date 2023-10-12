@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [1.1.7] - 2023-10-11
+- `CHG` Update readme
+
 ## [1.1.6] - 2023-10-03
 - `CHG` New logo
 
