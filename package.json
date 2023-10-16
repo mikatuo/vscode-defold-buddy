@@ -4,7 +4,7 @@
   "description": "Tools for Defold to make your life easier and coding in Lua nicer.",
   "publisher": "mikatuo",
   "license": "MIT",
-  "version": "1.1.7",
+  "version": "1.2.8",
   "repository": {
     "type": "git",
     "url": "https://github.com/mikatuo/vscode-defold-ide"
@@ -103,6 +103,11 @@
         "title": "Unzip dependencies",
         "category": "Defold Buddy",
         "enablement": "false"
+      },
+      {
+        "command": "vscode-defold-ide.openAssetStore",
+        "title": "Asset Portal",
+        "category": "Defold Buddy"
       }
     ],
     "menus": {
@@ -151,6 +156,9 @@
     ]
   },
   "scripts": {
+    "install:all": "npm install && cd webview-ui && npm install",
+    "start:webview": "cd webview-ui && npm run dev",
+    "build:webview": "cd webview-ui && npm run build",
     "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",

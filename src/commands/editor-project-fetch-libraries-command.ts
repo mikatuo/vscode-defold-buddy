@@ -2,7 +2,14 @@ import * as vscode from 'vscode';
 import { DefoldEditor, EditorCommand } from '../editor/defold-editor';
 
 export function registerEditorProjectFetchLibrariesCommand(context: vscode.ExtensionContext) {
-    context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.projectFetchLibraries', async () => {
+    context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.projectFetchLibraries', async (params) => {
+        if (params && params.silently) {
+            const editor = new DefoldEditor(context);
+            editor.showRunningDefoldEditorNotFoundWindow = false;
+            await editor.executeCommand(EditorCommand.fetchLibraries);
+            return;
+        }
+
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'Updating libraries...',

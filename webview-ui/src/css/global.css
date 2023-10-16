@@ -1,0 +1,34 @@
+:root {
+    --lightest: #fafafa;
+    --almostlightest: #f0f2f6;
+    --lighter: #afb9c4;
+    --light: #79838e;
+    --grey: #272c31;
+    --dark: #1e2226;
+    --darker: #191d21;
+    --darkest: #14181c;
+    --defold-blue: #39a3e4;
+    --defold-blue-dark: #327fec;
+    --defold-blue-darker: #2477eb;
+    --defold-blue-darkest: #1a70eb;
+    --defold-orange: #fd6623;
+    --defold-green: #57ab5a;
+}
+
+html {
+    overflow: -moz-scrollbars-vertical; 
+    overflow-y: scroll;
+}
+
+body {
+    background-color: var(--dark);
+    color: var(--lighter);
+
+    line-height: 1.6;
+    font-weight: 400;
+    font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+h1 {
+    line-height: 1.2;
+}

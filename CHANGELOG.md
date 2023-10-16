@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.2.8] - 2023-10-16
+- `CHG` UX improvements on Asset Portal
+- `FIX` bug with inconsistent grid on Asset Portal
+
+## [1.2.0] - 2023-10-15
+- `ADD` Asset Portal
+
 ## [1.1.7] - 2023-10-11
 - `CHG` Update readme
 

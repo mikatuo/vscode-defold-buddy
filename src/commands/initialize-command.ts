@@ -5,6 +5,7 @@ import { StateMemento } from '../persistence/state-memento';
 import { getWorkspacePath } from '../utils/common';
 import { ConfigInitializer } from '../utils/config-initializer';
 import { ZipArchiveManager } from '../utils/zip-archive-manager';
+import { IGithubRelease, IGithubReleaseAsset } from '../types/github';
 
 export function registerInitializeCommand(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.initialize', async () => {
@@ -128,18 +129,4 @@ interface IDefoldLuaAnnotationRelease {
 		apiAnnotationsUrl: string | undefined;
 		helperModuleUrl: string | undefined;
 	};
-}
-
-/* eslint-disable @typescript-eslint/naming-convention */
-interface IGithubRelease {
-	tag_name: string;
-	name: string;
-	draft: boolean;
-	prerelease: boolean;
-	assets: IGithubReleaseAsset[];
-}
-
-interface IGithubReleaseAsset {
-	name: string;
-	browser_download_url: string;
 }

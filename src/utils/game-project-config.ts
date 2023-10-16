@@ -66,7 +66,7 @@ export class GameProjectIniConfig {
             return false;
         }
 
-        return projectSection.values.some(x => x.key.startsWith('dependencies') && x.value.includes(`/${extensionName}/`));
+        return projectSection.values.some(x => x.key.startsWith('dependencies') && x.value.toLowerCase().includes(`/${extensionName.toLowerCase()}/`));
     }
 
     set({ section: sectionName, key, value }: { section: string, key: string, value: string }) {

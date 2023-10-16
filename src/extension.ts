@@ -19,6 +19,7 @@ import { config } from './config';
 import { registerEditorProjectFetchLibrariesCommand } from './commands/editor-project-fetch-libraries-command';
 import { registerEditorDebugStartOrAttachCommand } from './commands/editor-debug-start-or-attach-command';
 import { OutputChannels } from './outputChannels';
+import { AssetPortalPanel } from './panels/AssetPortalPanel';
 
 // TODO: annotations for Defold to work without copying the files into the project
 //	     ^ currently, there is no way to do that without specifying the absolute path, which I don't like
@@ -41,6 +42,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	maybeAskToInitializeCurrentProject(context);
 	maybeAskToOpenDefoldEditor(context);
+
+	registerOpenAssetStoreCommand(context);
 
 	// index game files for autocompletion
 	vscode.commands.executeCommand('vscode-defold-ide.indexDefoldFiles');
@@ -199,16 +202,13 @@ async function askToOpenDefoldEditorOrInputPort(context: vscode.ExtensionContext
 	}
 }
 
-async function askUserForPort(): Promise<string | undefined> {
-	const portFromUser = await vscode.window.showInputBox({
-		title: 'Port of the running Defold editor',
-		prompt: 'How to find a port of your running Defold editor:\n In the menu open "Debug" > "Open Web Profiler". The profiler will open in a browser. Copy the port from the URL. In example, for http://localhost:XXXXX/engine-profiler the port will be XXXXX. Input the port into the text input above.',
-		placeHolder: 'xxxxx',
-		ignoreFocusOut: true,
-	});
-	return portFromUser;
-}
-
 function createDefoldBuddyOutputChannel(name: string) {
 	OutputChannels.defoldBuddy = vscode.window.createOutputChannel(name, 'defold-buddy-console-output');
+}
+
+// the web view shows content of https://defold.com/assets/
+async function registerOpenAssetStoreCommand(context: vscode.ExtensionContext) {
+    context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.openAssetStore', async () => {
+		AssetPortalPanel.render(context.extensionUri);
+	}));
 }
