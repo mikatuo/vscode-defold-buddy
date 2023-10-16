@@ -7,6 +7,7 @@ The buddy can "talk" to your Defold Editor to automate boring stuff. You will ha
 
 - [x] IntelliSense for Defold API and project dependencies
 - [x] Autocompletion for Defold URLs of your project
+- [x] Asset Portal
 - [x] Open Defold Editor from VS Code
 - [x] Build (run) your game via Defold Editor from VS Code
 - [x] Fetch libraries via Defold Editor from VS Code
@@ -26,7 +27,7 @@ The buddy can "talk" to your Defold Editor to automate boring stuff. You will ha
 or
 
 1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P`) or go to `View` > `Command Palette`.
-2. Select `Defold: Initialize`
+2. Select `Defold Buddy: Initialize`
 
 ![a138ae9600cd0fa1d520bb4fbb8f33c897f3aa8f](https://user-images.githubusercontent.com/7230306/222926907-57a8eae2-8db7-43d1-9d6c-80e651d83d3c.gif)
 
@@ -54,8 +55,18 @@ Note: read about the [addressing](https://defold.com/manuals/addressing/) if you
 For now the suggestions are not refreshed automatically when you make any changes to your .go and .collection files. For now you need to re-index them manually by runnin a command.
 
 1. Open a `.script` file, you should see suggestions after typing a `"`, or pushing `Ctrl+Enter` with cursor next to a `"`.
-2. Run "Defold: Index game files for autocompletion" when you need to refresh the autocompletion
+2. Run "Defold Buddy: Index game files for autocompletion" when you need to refresh the autocompletion
 </details>
+
+## Asset Portal
+
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P`) or go to `View` > `Command Palette`.
+2. Select `Defold Buddy: Asset Portal`
+
+<details><summary>Demo...</summary><p>
+
+![ezgif-4-b091012f33](https://github.com/mikatuo/vscode-defold-buddy/assets/7230306/7ff1547f-d43c-4195-8066-5542c0509df8)
+</p></details>
 
 ## Build (run) your game via Defold Editor from VSCode
 
