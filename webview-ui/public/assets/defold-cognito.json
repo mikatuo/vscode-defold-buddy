@@ -1,0 +1,23 @@
+{
+  "author": "willemt",
+  "description": "Defold native extension which provides access to AWS Cognito. Useful for user signup/login.",
+  "forum_url": "",
+  "images": {
+    "hero": "",
+    "thumb": ""
+  },
+  "library_url": "",
+  "license": "BSD",
+  "name": "defold-cognito",
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "project_url": "https://github.com/willemt/defold-cognito",
+  "stars": 5,
+  "tags": [
+    "social"
+  ],
+  "timestamp": 1645093320.0,
+  "website_url": ""
+}

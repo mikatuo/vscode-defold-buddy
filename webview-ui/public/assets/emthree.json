@@ -1,0 +1,28 @@
+{
+  "author": "Bj\u00f6rn Ritzl",
+  "description": "A match three engine.",
+  "id": "emthree",
+  "images": {
+    "hero": "emthree-hero.png",
+    "thumb": "emthree-thumb.png"
+  },
+  "library_url": "https://github.com/britzl/emthree/archive/master.zip",
+  "license": "MIT License",
+  "name": "Emthree",
+  "platforms": [
+    "iOS",
+    "Android",
+    "macOS",
+    "Windows",
+    "Linux",
+    "HTML5"
+  ],
+  "project_url": "https://github.com/britzl/emthree",
+  "stars": 25,
+  "tags": [
+    "Template projects",
+    "Game mechanic"
+  ],
+  "timestamp": 1567163518.0,
+  "website_url": "https://britzl.github.io/Emthree"
+}

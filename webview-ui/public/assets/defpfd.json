@@ -1,0 +1,25 @@
+{
+  "author": "AsakuraMizu",
+  "description": "Portable File Dialogs for Defold",
+  "forum_url": "",
+  "images": {
+    "hero": "",
+    "thumb": ""
+  },
+  "library_url": "https://github.com/AsakuraMizu/defpfd/archive/master.zip",
+  "license": "MIT",
+  "name": "Defpfd",
+  "platforms": [
+    "macOS",
+    "Windows",
+    "Linux"
+  ],
+  "project_url": "https://github.com/AsakuraMizu/defpfd",
+  "stars": 7,
+  "tags": [
+    "Input",
+    "System"
+  ],
+  "timestamp": 1658219139.0,
+  "website_url": ""
+}
