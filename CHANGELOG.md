@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [1.2.9] - 2023-10-16
+- `CHG` Readme, sponsor url, links to the Github repo
+
 ## [1.2.8] - 2023-10-16
 - `CHG` UX improvements on Asset Portal
 - `FIX` bug with inconsistent grid on Asset Portal
