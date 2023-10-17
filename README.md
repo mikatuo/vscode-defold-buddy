@@ -32,8 +32,6 @@ or
 ![a138ae9600cd0fa1d520bb4fbb8f33c897f3aa8f](https://user-images.githubusercontent.com/7230306/222926907-57a8eae2-8db7-43d1-9d6c-80e651d83d3c.gif)
 
 ![4cf75769ac699bbe2e1242fd9f6af705ccb29816](https://user-images.githubusercontent.com/7230306/222926911-23dd658c-359f-4739-8d04-e83add96aba0.png)
-
-![213931566-78acccca-6335-4407-8e1a-3ab000899525](https://user-images.githubusercontent.com/7230306/222926916-b070093e-4468-4ced-b00f-6c603e56376a.gif)
 </p></details>
 
 <details><summary>Demo (project dependencies)...</summary><p>
@@ -60,10 +58,10 @@ For now the suggestions are not refreshed automatically when you make any change
 
 ## Asset Portal
 
+<details><summary>Demo...</summary><p>
+
 1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P`) or go to `View` > `Command Palette`.
 2. Select `Defold Buddy: Asset Portal`
-
-<details><summary>Demo...</summary><p>
 
 ![ezgif-4-b091012f33](https://github.com/mikatuo/vscode-defold-buddy/assets/7230306/7ff1547f-d43c-4195-8066-5542c0509df8)
 </p></details>
@@ -116,9 +114,9 @@ Or from VSCode:
 ![8ea1248ec0f937778e9e3645a4158209fb53ada0](https://user-images.githubusercontent.com/7230306/222927056-03cd09eb-9fdb-4801-9286-a8d9c7d77aad.gif)
 </p></details>
 
----
+<br/>
 
-#### Feedback
+### Feedback
 
 If you would like to collaborate, contribute or request a feature feel free to do it at [Github](https://github.com/mikatuo/vscode-defold-buddy)
 
