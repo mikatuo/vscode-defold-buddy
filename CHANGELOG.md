@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [1.3.2] - 2023-11-01
+## [1.3.5] - 2023-11-01
 - `CHG` Trigger hot reload when `.gui_script` files are saved
 - `FIX` Bug when an icon on Asset Portal was taking whole view
 
