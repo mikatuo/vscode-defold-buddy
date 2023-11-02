@@ -1,21 +1,21 @@
 # Defold Buddy
 
-Tools for Defold to make your life easier and coding experience nicer.<br/>
-The buddy can "talk" to your Defold Editor to automate boring stuff. You will have less reasons to alt-tab between VS Code and Defold Editor because you can run your game, fetch libraries from VS Code.
+Productivity tools for Defold to make your life easier and coding experience nicer.<br/>
+You will have less reasons to alt-tab between VS Code and Defold Editor because you can run your game, hot reload changed files, fetch libraries from VS Code.
 
 ## Features
 
-- [x] IntelliSense for Defold API and project dependencies
-- [x] Autocompletion for Defold URLs of your project
+- [x] Code completion for Defold API and dependencies
+- [x] Code completion for Defold URLs
 - [x] Asset Portal
-- [x] Open Defold Editor from VS Code
-- [x] Build (run) your game via Defold Editor from VS Code
-- [x] Fetch libraries via Defold Editor from VS Code
-- [x] Hot reloading for script and lua files on save
+- [x] Build (run) your game
+- [x] Fetch libraries
+- [x] Hot reloading
+- [x] Open Defold Editor
 - [x] Create a complex Game Object file from Explorer context menu
 - [x] Generate manifest (reduce game bundle size) - also available in Defold Editor
 
-## IntelliSense for Defold API and project dependencies
+## Code completion for Defold API and dependencies
 
 ![GitHub release](https://img.shields.io/github/v/release/mikatuo/defold-lua-annotations.svg?include_prereleases=&sort=semver&color=)
 
@@ -39,7 +39,7 @@ or
 ![2647bce06606342c31c08006257d11e0173b23f5](https://user-images.githubusercontent.com/7230306/222926955-41f35bf5-bba3-4a96-8399-5edb8179e482.gif)
 </p></details>
 
-## Autocompletion for Defold URLs
+## Code completion for Defold URLs
 
 <details><summary>Demo...</summary><p>
 
@@ -50,7 +50,7 @@ Note: read about the [addressing](https://defold.com/manuals/addressing/) if you
 
 <details><summary>Known issues</summary>
 
-For now the suggestions are not refreshed automatically when you make any changes to your .go and .collection files. For now you need to re-index them manually by runnin a command.
+For now the suggestions are not refreshed automatically when you make any changes to your .go and .collection files. For now you need to re-index them manually by running a command.
 
 1. Open a `.script` file, you should see suggestions after typing a `"`, or pushing `Ctrl+Enter` with cursor next to a `"`.
 2. Run "Defold Buddy: Index game files for autocompletion" when you need to refresh the autocompletion
@@ -66,7 +66,7 @@ For now the suggestions are not refreshed automatically when you make any change
 ![ezgif-4-b091012f33](https://github.com/mikatuo/vscode-defold-buddy/assets/7230306/7ff1547f-d43c-4195-8066-5542c0509df8)
 </p></details>
 
-## Build (run) your game via Defold Editor from VSCode
+## Build (run) your game
 
 <details><summary>Demo...</summary><p>
 
@@ -77,9 +77,9 @@ Note: you can [set a hotkey](https://code.visualstudio.com/docs/getstarted/keybi
 ![81887c48d3bad6b29c9dbb49bea0c179d652cb05](https://user-images.githubusercontent.com/7230306/222926974-5c4d7e5b-a29d-427b-a33e-abb29b09701c.gif)
 </p></details>
 
-## Hot reloading for script and lua files on save
+## Hot reloading
 
-After a `.script` or `.lua` file is saved it is automatically hot-reloaded if the game is running.
+After `.script`, `.gui_script` or `.lua` files are saved they are automatically hot-reloaded if the game is running.
 
 <details><summary>Demo...</summary><p>
 
