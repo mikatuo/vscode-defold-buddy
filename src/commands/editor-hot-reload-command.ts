@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
 import { DefoldEditor, EditorCommand } from '../editor/defold-editor';
 
+const fileExtensionsThatTriggerHotReload = ['.script', '.lua', '.gui_script'];
+
 export function registerEditorHotReloadCommand(context: vscode.ExtensionContext) {
     // TODO: move outside of the command
     vscode.workspace.onDidSaveTextDocument(async (document) => {
-        if (document.fileName.endsWith('.script') || document.fileName.endsWith('.lua')) {
+        if (fileExtensionsThatTriggerHotReload.some((ext) => document.fileName.endsWith(ext))) {
             const editor = new DefoldEditor(context);
             editor.showRunningDefoldEditorNotFoundWindow = false;
             await editor.executeCommand(EditorCommand.hotReload);

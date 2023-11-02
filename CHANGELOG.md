@@ -2,12 +2,19 @@
 
 ## [Unreleased]
 
+## [1.3.2] - 2023-11-01
+- `CHG` Trigger hot reload when `.gui_script` files are saved
+- `FIX` Bug when an icon on Asset Portal was taking whole view
+
+## [1.3.1] - 2023-10-18
+- `FIX` Game logs should be showing correctly without text artefacts at the end
+
 ## [1.2.9] - 2023-10-16
 - `CHG` Readme, sponsor url, links to the Github repo
 
 ## [1.2.8] - 2023-10-16
 - `CHG` UX improvements on Asset Portal
-- `FIX` bug with inconsistent grid on Asset Portal
+- `FIX` Bug with inconsistent grid on Asset Portal
 
 ## [1.2.0] - 2023-10-15
 - `ADD` Asset Portal
