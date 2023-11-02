@@ -29,7 +29,6 @@ function findGameServiceLocationUrl(): Promise<string | undefined> {
 
 		client.on('response', function (headers: any, statusCode: any, rinfo: any) {
 			if (headers.SERVER.indexOf('Defold') !== -1) {
-				const diffInMs = new Date().getTime() - started.getTime();
 				if (!done) {
 					done = true;
 					resolve(headers.LOCATION);

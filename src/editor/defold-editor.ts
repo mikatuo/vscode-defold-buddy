@@ -8,6 +8,7 @@ import { openDefoldEditor } from '../utils/common';
 import { Subject } from 'rxjs';
 import { findRunningDefoldEngineService } from '../wip/findRunningDefoldGame';
 import WebSocket = require('ws');
+import { DataViewReader } from './dataViewReader';
 
 const editorBaseUrl = 'http://localhost';
 
@@ -262,21 +263,25 @@ async function loadEditorConsoleLogs(port: string): Promise<{ success: boolean, 
 
 function streamDefoldEditorConsoleLogs(params: { ip?: string; port?: string; address?: string }, $output: Subject<string>) {
     const address = params.address || `ws://${params.ip}:${params.port}/`;
+
     const ws = new WebSocket(address);
+	ws.binaryType = 'arraybuffer';
 
     ws.on('error', function (err: any) {
 		console.error(`Failed to read logs from Defold's remotery`, err);
 	});
 
-    const ignoredMessages = ['SMPL', 'PSNP', 'PING'];
-    ws.on('message', function (data: Buffer) {
-        let dataString = data.toString('utf8');
-        if (ignoredMessages.some(msg => dataString.startsWith(msg))) { return; }
-        if (dataString.startsWith('LOGM')) {
-            dataString.replace(/^LOGM/, '');
-        }
-        const length = data.slice(8, 12).reduce((acc, val) => acc + val, 0);
-        dataString = data.toString('utf8', 12).slice(0, length);
-		$output.next(dataString);
+	ws.on('message', function (data: ArrayBuffer) {
+		let data_view = new DataView(data);
+		let data_view_reader = new DataViewReader(data_view, 0);
+
+		// decode standard message header
+		const id = data_view_reader.GetStringOfLength(4);
+		const length = data_view_reader.GetUInt32() - 8;
+
+		if (id === 'LOGM') {
+			var text = data_view_reader.GetString();
+			$output.next(text);
+		}
     });
 }
