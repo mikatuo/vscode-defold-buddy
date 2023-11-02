@@ -7,6 +7,7 @@ out/test/**
 
 # Ignore source code
 src/**
+node_modules/**
 
 # Ignore all webview-ui files except the public directory
 webview-ui/src/**
