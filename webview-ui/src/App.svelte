@@ -173,7 +173,7 @@ function normalizeTagNames(tag: ITagFilter): ITagFilter {
 
   <!-- Header -->
   <div class="header">
-    <img src="https://defold.com/images/icons/community-assets-on-dark.svg" alt="" style="max-width: 150px !important"/>
+    <img src="https://defold.com/images/icons/community-assets-on-dark.svg" alt="" style="width: 150px !important"/>
     <div class="second">
       <h1>Asset Portal</h1>
       <p>
