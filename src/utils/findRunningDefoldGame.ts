@@ -3,7 +3,7 @@ import axios from "axios";
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Client = require('node-ssdp').Client;
 
-export async function findRunningDefoldEngineService(): Promise<{ip: string, logPort: string} | undefined> {
+export async function findRunningDefoldGame(): Promise<{ip: string, logPort: string} | undefined> {
 	const location = await findGameServiceLocationUrl();
 	if (!location) { return undefined; }
 
@@ -36,7 +36,7 @@ function findGameServiceLocationUrl(): Promise<string | undefined> {
 			}
 		});
 
-		const searchInterval = 1000;
+		const searchInterval = 2000;
 		let i = 0;
 		if (!done) {
 			client.search('upnp:rootdevice');
@@ -44,7 +44,7 @@ function findGameServiceLocationUrl(): Promise<string | undefined> {
 				if (done) {
 					clearInterval(interval);
 					return;
-				} else if (i > 30) {
+				} else if (i > 10) {
 					clearInterval(interval);
 					console.error(`Failed to find running Defold Engine in ${i * searchInterval}ms`);
 					return resolve(undefined);

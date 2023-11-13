@@ -6,7 +6,7 @@ const { once } = require('node:events');
 import { DefoldEditorLogsRepository } from "../utils/defold-editor-logs-repository";
 import { openDefoldEditor } from '../utils/common';
 import { Subject } from 'rxjs';
-import { findRunningDefoldEngineService } from '../wip/findRunningDefoldGame';
+import { findRunningDefoldGame } from '../utils/findRunningDefoldGame';
 import WebSocket = require('ws');
 import { DataViewReader } from './dataViewReader';
 
@@ -75,7 +75,8 @@ export class DefoldEditor {
 	}
 
     async listenToConsoleLogs(port: string) {
-		const engineService = await findRunningDefoldEngineService();
+		await new Promise(resolve => setTimeout(resolve, 1000));
+		const engineService = await findRunningDefoldGame();
         if (!engineService) { return; }
 
         const editorConsole = await loadInitialDefoldEditorConsoleInfo(port);

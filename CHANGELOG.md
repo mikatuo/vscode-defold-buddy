@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [1.3.8] - 2023-11-13
+- `FIX` Trying to fix "No output socket available for ssdp search response" error
+
 ## [1.3.7] - 2023-11-01
 - `CHG` Trigger hot reload when `.gui_script` files are saved
 - `FIX` Bug when an icon on Asset Portal was taking whole view

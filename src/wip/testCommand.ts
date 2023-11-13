@@ -2,14 +2,14 @@ import * as vscode from 'vscode';
 import axios from 'axios';
 import { load, Root } from 'protobufjs';
 import { readWorkspaceFile } from '../utils/common';
-import { findRunningDefoldEngineService } from './findRunningDefoldGame';
+import { findRunningDefoldGame } from '../utils/findRunningDefoldGame';
 const descriptor = require('protobufjs/ext/descriptor');
 
 export function registerTestCommand(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.test', async () => {
 		vscode.window.showInformationMessage('Testing...');
 		
-		const engineService = await findRunningDefoldEngineService();
+		const engineService = await findRunningDefoldGame();
 		console.log(engineService);
 
 		// await reloadGame(context);
