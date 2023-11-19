@@ -1,3 +1,5 @@
+![Untitled](https://github.com/mikatuo/vscode-defold-buddy/assets/7230306/59992804-42f2-410a-99b0-97517fa2b697)
+
 # Defold Buddy
 
 Productivity tools for Defold to make your life easier and coding experience nicer.<br/>
