@@ -9,15 +9,15 @@ const tsDefoldFilesThatTriggerHotReload = ['.ts'];
 const tsDefoldTranspilationMaxWaitTime = 2000;
 
 export function registerEditorHotReloadCommand(context: vscode.ExtensionContext) {
-    hotReloadGameWhenGameFilesChange(context);
-    hotReloadGameWhenTsDefoldFilesChange(context);
+    hotReloadGameWhenGameFilesAreSaved(context);
+    hotReloadGameWhenTsDefoldFilesAreSaved(context);
 
     context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.hotReload', async () => {
         await hotReloadRunningGameOrAskToOpenDefoldEditor(context);
     }));
 };
 
-function hotReloadGameWhenGameFilesChange(context: vscode.ExtensionContext) {
+function hotReloadGameWhenGameFilesAreSaved(context: vscode.ExtensionContext) {
     vscode.workspace.onDidSaveTextDocument(async (document) => {
         if (gameFilesThatTriggerHotReload.some((ext) => document.fileName.endsWith(ext))) {
             await silentlyHotReloadRunningGameViaDefoldEditor(context);
@@ -25,7 +25,7 @@ function hotReloadGameWhenGameFilesChange(context: vscode.ExtensionContext) {
     });
 }
 
-function hotReloadGameWhenTsDefoldFilesChange(context: vscode.ExtensionContext) {
+function hotReloadGameWhenTsDefoldFilesAreSaved(context: vscode.ExtensionContext) {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (workspaceFolder) {
         vscode.workspace.onWillSaveTextDocument(async (event) => {
