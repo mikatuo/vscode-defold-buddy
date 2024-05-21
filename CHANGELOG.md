@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.4.0] - 2024-05-20
+- `CHG` Trigger hot reload for TS Defold when `.ts` files are saved
+- `CHG` Initialize the extension for TS Defold (app/game.project is detected)
+
+## [1.3.9] - 2023-11-18
+- `ADD` Hero image into the Readme
+
 ## [1.3.8] - 2023-11-13
 - `FIX` Trying to fix "No output socket available for ssdp search response" error
 
