@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [1.5.2] - 2024-10-07
+## [1.5.3] - 2024-10-07
 - `ADD` Project initializer for Teal
 
 ## [1.4.0] - 2024-05-20
