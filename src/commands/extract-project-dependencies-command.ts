@@ -6,6 +6,10 @@ import { extendConfigArray, getWorkspacePath, readWorkspaceFile, removeFromConfi
 import { GameProjectConfig } from '../utils/game-project-config';
 import { ZipArchiveManager } from '../utils/zip-archive-manager';
 
+const skipAssets = [
+    'extension-teal', // Defold editor shows an error when it's extracted
+];
+
 export async function registerUnzipProjectAssetsCommand(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-defold-ide.unzipDependencies', async (folder: vscode.Uri) => {
         const state = await StateMemento.load(context);
@@ -21,11 +25,17 @@ export async function registerUnzipProjectAssetsCommand(context: vscode.Extensio
         // a workaround to make the Lua plugin reload lib files after they change
         await removeLuaWorkspaceLibrariesFromSettings();
         for await (const filename of filenames) {
-            const unzippedAsset = await unzipAssetFromArchive(filename);
-            await maybeEnhanceUnzippedAsset(unzippedAsset);
+            const assetArchive = await readAssetArchiveMetadata(filename);
+            if (shouldSkipAsset(assetArchive)) {
+                console.log(`Skipping ${assetArchive.name} asset`);
+                state.assets.push(toAssetInfo(assetArchive, filename));
+                continue;
+            }
+            await unzipAssetFromArchive(assetArchive);
+            await maybeEnhanceUnzippedAsset(assetArchive);
             // add .defold/lib/ into the library paths in the Lua plugin settings
             //await moveAssetIncludeFolderIntoAnnotationsFolder(unzippedAsset);
-            state.assets.push(toAssetInfo(unzippedAsset, filename));
+            state.assets.push(toAssetInfo(assetArchive, filename));
         }
         await deleteExtManifestFilesToNotHaveBuildErrors();
         //await deleteFilesFromAssetsFolder('.cpp');
@@ -38,7 +48,7 @@ async function readArchivedAssetFilenames() {
     try {
         const dependenciesInternalPath = getWorkspacePath(constants.assetsInternalFolder);
         const archiveFilenames = await vscode.workspace.fs.readDirectory(dependenciesInternalPath!);
-        return archiveFilenames;
+        return archiveFilenames.filter(filename => filename[1] === vscode.FileType.File && filename[0].endsWith('.zip'));
     } catch (ex) {
         console.log('Failed to read archived assets.', ex);
         return [];
@@ -73,7 +83,7 @@ async function addLuaWorkspaceLibrariesIntoSettings() {
     await extendConfigArray(workspaceConfig, 'Lua.workspace.library', [config.assetsAnnotationsFolder]);
 }
 
-async function maybeEnhanceUnzippedAsset(unzippedAsset: IArchivedAsset) {
+async function maybeEnhanceUnzippedAsset(unzippedAsset: IArchiveAsset) {
     if (!unzippedAsset || !unzippedAsset.name) {
         return;
     }
@@ -100,29 +110,34 @@ async function safelyEditAssetFile(path: vscode.Uri, mutator: (content: string) 
     }
 }
 
-async function unzipAssetFromArchive(filename: [string, vscode.FileType]): Promise<IArchivedAsset> {
+async function readAssetArchiveMetadata(filename: [string, vscode.FileType]): Promise<IArchiveAsset> {
     const zipUri = getWorkspacePath(`${constants.assetsInternalFolder}/${filename[0]}`)!;
+    return await readAssetInfoFromArchive(zipUri.fsPath);
+}
+
+function shouldSkipAsset(archivedAsset: IArchiveAsset): boolean {
+    const assetName = archivedAsset.rootDirectory?.toLowerCase() || archivedAsset.name.toLowerCase();
+    return skipAssets.findIndex(name => assetName.startsWith(name)) !== -1;
+}
+
+async function unzipAssetFromArchive(archivedAsset: IArchiveAsset): Promise<void> {
     const destinationUri = getWorkspacePath(config.assetsAnnotationsFolder)!;
     
-    const archiveManager = new ZipArchiveManager(zipUri.fsPath);
-    const archivedAsset = await readAssetInfoFromArchive(archiveManager);
-
-    // unzip the asset into /.defold/lib/asset-name/include-dir
+    // unzip the asset into /.defold/lib/{asset-name}/include-dir
     try {
         const includeDirs = getIncludeDirsInsideArchive(archivedAsset);
+        const archiveManager = new ZipArchiveManager(archivedAsset.path);
         await archiveManager.extractEntries(
             entry => includeDirs.includes(entry.relativePath),
             destinationUri,
             { overwrite: true },
         );
-        return archivedAsset;
     } catch (ex) {
-        console.error(`Failed to unzip asset '${archivedAsset.name}' from archive '${zipUri.fsPath}'.`, ex);
-        return archivedAsset;
+        console.error(`Failed to unzip asset '${archivedAsset.name}' from archive ${archivedAsset.path}`, ex);
     }
 }
 
-function getIncludeDirsInsideArchive(archivedAsset: IArchivedAsset): string[] {
+function getIncludeDirsInsideArchive(archivedAsset: IArchiveAsset): string[] {
     return archivedAsset.includeDirectories.map(includeDir => {
         if (archivedAsset.rootDirectory !== '') {
             return `${archivedAsset.rootDirectory}/${includeDir}/`;
@@ -132,7 +147,7 @@ function getIncludeDirsInsideArchive(archivedAsset: IArchivedAsset): string[] {
     });
 }
 
-function toAssetInfo(unzippedAsset: IArchivedAsset, filename: [string, vscode.FileType]): IAsset {
+function toAssetInfo(unzippedAsset: IArchiveAsset, filename: [string, vscode.FileType]): IAsset {
     return {
         name: unzippedAsset.name,
         version: unzippedAsset.version,
@@ -140,11 +155,13 @@ function toAssetInfo(unzippedAsset: IArchivedAsset, filename: [string, vscode.Fi
     };
 }
 
-async function readAssetInfoFromArchive(archiveManager: ZipArchiveManager): Promise<IArchivedAsset> {
+async function readAssetInfoFromArchive(path: string): Promise<IArchiveAsset> {
     try {
+        const archiveManager = new ZipArchiveManager(path);
         const data = await archiveManager.readAsText('game.project');
         const config = GameProjectConfig.fromString(data!);
         return {
+            path,
             name: config.title(),
             version: config.version(),
             rootDirectory: archiveManager.rootDirectory || '',
@@ -152,11 +169,12 @@ async function readAssetInfoFromArchive(archiveManager: ZipArchiveManager): Prom
         };
     } catch (e) {
         console.log(`Failed to read asset info from the archive. ${e}`);
-        return {} as IArchivedAsset;
+        return {} as IArchiveAsset;
     }
 }
 
-interface IArchivedAsset {
+interface IArchiveAsset {
+    path: string;
     name: string;
     version: string;
     rootDirectory: string;

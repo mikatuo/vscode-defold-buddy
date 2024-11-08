@@ -7,7 +7,8 @@ You will have less reasons to alt-tab between VS Code and Defold Editor because 
 
 ## Features
 
-- [x] Code completion for Defold API and dependencies
+- [x] Lua code completion for Defold API and dependencies
+- [x] Teal code completion for Defold API
 - [x] Code completion for Defold URLs
 - [x] Asset Portal
 - [x] Build (run) your game
@@ -19,7 +20,7 @@ You will have less reasons to alt-tab between VS Code and Defold Editor because 
 
 ## Code completion for Defold API and dependencies
 
-![GitHub release](https://img.shields.io/github/v/release/mikatuo/defold-lua-annotations.svg?include_prereleases=&sort=semver&color=)
+![GitHub release](https://img.shields.io/github/v/release/mikatuo/defold-lsp-annotations.svg?include_prereleases=&sort=semver&color=)
 
 <details><summary>Demo (Defold API)...</summary><p>
 
@@ -128,4 +129,4 @@ Manifest generation code was copy pasted from [Defold App Manifest generator](ht
 
 #### Resources
 
-Annotations used in this extensions are generated with [Defold Lua Annotations](https://github.com/mikatuo/defold-lua-annotations).
+Annotations used in this extensions are generated with [Defold Lua Annotations](https://github.com/mikatuo/defold-lsp-annotations).

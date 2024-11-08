@@ -30,4 +30,3 @@ function outputToChannel(): Partial<Observer<string>> | ((value: string) => void
         channel.appendLine(line);
     };
 }
-

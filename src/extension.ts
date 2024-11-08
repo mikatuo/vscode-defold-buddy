@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { registerInitializeCommand } from './commands/initialize-command';
+import { registerInitializeProjectCommand } from './commands/initialize-project-command';
 import { registerGenerateManifestCommand } from './commands/generate-manifest-command';
 import { registerUrlCompletionItemProvider } from './completion/url-completion-provider';
 import { registerGenerateHashesModuleCommand } from './commands/generate-hashes-module';
@@ -9,15 +9,16 @@ import { registerCreateGuiCommand } from './commands/create-gui-command';
 import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
 import { registerEditorProjectBuildCommand } from './commands/editor-project-build-command';
 import { registerEditorHotReloadCommand } from './commands/editor-hot-reload-command';
-import { getWorkspacePath, openDefoldEditor } from './utils/common';
 import { registerUnzipProjectAssetsCommand } from './commands/extract-project-dependencies-command';
+import { registerEditorProjectFetchLibrariesCommand } from './commands/editor-project-fetch-libraries-command';
+import { registerEditorDebugStartOrAttachCommand } from './commands/editor-debug-start-or-attach-command';
+import { registerAddProjectDependencyCommand } from './commands/add-project-dependency-command';
+import { getWorkspacePath, openDefoldEditor } from './utils/common';
 import { StateMemento } from './persistence/state-memento';
 import { constants } from './constants';
 import { migrateFromOldVersions } from './migrations/migrate-from-old-versions';
 import { DefoldEditor } from './editor/defold-editor';
 import { config } from './config';
-import { registerEditorProjectFetchLibrariesCommand } from './commands/editor-project-fetch-libraries-command';
-import { registerEditorDebugStartOrAttachCommand } from './commands/editor-debug-start-or-attach-command';
 import { OutputChannels } from './outputChannels';
 import { AssetPortalPanel } from './panels/AssetPortalPanel';
 
@@ -59,13 +60,14 @@ export function deactivate() {}
 //////////////////
 
 function registerCommands(context: vscode.ExtensionContext) {
-	registerInitializeCommand(context);
+	registerInitializeProjectCommand(context);
 	registerGenerateManifestCommand(context);
 	registerGenerateHashesModuleCommand(context);
 	registerIndexDefoldFilesCommand(context);
 	registerCreateGameObjectCommand(context);
 	registerCreateGuiCommand(context);
 	registerCreateLuaModuleCommand(context);
+	registerAddProjectDependencyCommand(context);
 }
 
 function registerEditorCommands(context: vscode.ExtensionContext) {
@@ -92,6 +94,7 @@ async function maybeAskToInitializeCurrentProject(context: vscode.ExtensionConte
 	if (await folderExists('.defold')) {
 		await StateMemento.save(context, {
 			version: 'unknown',
+			language: 'lua',
 			assets: [],
 		});
 		return;

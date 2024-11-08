@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [1.5.2] - 2024-10-07
+- `ADD` Project initializer for Teal
+
 ## [1.4.0] - 2024-05-20
 - `CHG` Trigger hot reload for TS Defold when `.ts` files are saved
 - `CHG` Initialize the extension for TS Defold (app/game.project is detected)
@@ -83,7 +86,7 @@
 - `FIX` Do not show URL autocompletion after `require` keyword
 
 ## [0.8.7] - 2023-02-26
-- `CHG` Download annotation files from [Github](https://github.com/mikatuo/defold-lua-annotations/releases)
+- `CHG` Download annotation files from [Github](https://github.com/mikatuo/defold-lsp-annotations/releases)
 - `CHG` Various improvements with annotations for dependencies
 
 ## [0.8.6] - 2023-02-24

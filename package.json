@@ -4,7 +4,7 @@
   "description": "Productivity tools for Defold to make your life easier and coding experience nicer",
   "publisher": "mikatuo",
   "license": "MIT",
-  "version": "1.4.0",
+  "version": "1.5.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/mikatuo/vscode-defold-buddy"
@@ -94,6 +94,11 @@
         "category": "Defold Buddy"
       },
       {
+        "command": "vscode-defold-ide.openAssetStore",
+        "title": "Asset Portal",
+        "category": "Defold Buddy"
+      },
+      {
         "command": "vscode-defold-ide.hotReload",
         "title": "Hot reload",
         "category": "Defold Buddy",
@@ -106,9 +111,10 @@
         "enablement": "false"
       },
       {
-        "command": "vscode-defold-ide.openAssetStore",
-        "title": "Asset Portal",
-        "category": "Defold Buddy"
+        "command": "vscode-defold-ide.addDependency",
+        "title": "Add dependency",
+        "category": "Defold Buddy",
+        "enablement": "false"
       }
     ],
     "menus": {
@@ -199,6 +205,7 @@
     "ws": "^8.14.2"
   },
   "extensionDependencies": [
-    "sumneko.lua"
+    "sumneko.lua",
+    "pdesaulniers.vscode-teal"
   ]
 }

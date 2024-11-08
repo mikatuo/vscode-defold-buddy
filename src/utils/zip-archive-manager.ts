@@ -23,6 +23,15 @@ export class ZipArchiveManager {
         await this.zip.extractAllTo(destinationFolderUri.fsPath, /*overwrite*/ options.overwrite);
     }
 
+    async extractEntry(entryName: string, destinationFolderUri: vscode.Uri, options: { overwrite?: boolean; }): Promise<void> {
+        const entries = this.findZipEntries(entry => entry.entryName === entryName);
+        const entry = entries.find(entry => entry.entryName === entryName);
+        
+        if (entry) {
+            this.zip.extractEntryTo(entry.entryName, destinationFolderUri.fsPath, /*maintainEntryPath*/true, options.overwrite);
+        }
+    }
+
     async extractEntries(entryMatcher: (entry: IArchiveEntry) => boolean, destinationFolderUri: vscode.Uri, options: { overwrite?: boolean; }): Promise<void> {
         const entries = this.findZipEntries(entry => entryMatcher({ relativePath: entry.entryName }));
         for (const entry of entries) {
@@ -32,7 +41,7 @@ export class ZipArchiveManager {
                 tempFolderUri = vscode.Uri.joinPath(tempFolderUri, this.rootDirectory);
             }
             await this.zip.extractEntryTo(entry.entryName, tempFolderUri.fsPath, /*maintainEntryPath*/true, options.overwrite);
-            
+
             const unzippedRootFolder = vscode.Uri.joinPath(destinationFolderUri, this.rootDirectory);
             const unzippedFilenames = await vscode.workspace.fs.readDirectory(unzippedRootFolder);
             for await (const filename of unzippedFilenames) {

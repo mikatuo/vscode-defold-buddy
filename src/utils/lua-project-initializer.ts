@@ -1,27 +1,24 @@
 import * as vscode from 'vscode';
-import { promises as fs } from 'fs';
-import path = require('path'); // TODO: use vscode.Uri.joinPath instead?
-import { extendConfigArray, extendConfigObject, getWorkspacePath, readWorkspaceFile, saveWorkspaceFile, setConfigValue } from './common';
-import { StateMemento } from '../persistence/state-memento';
+import { extendConfigArray, extendConfigObject, readWorkspaceFile, saveWorkspaceFile, setConfigValue } from './common';
 import { config } from '../config';
 
-export class ConfigInitializer {
-	context: vscode.ExtensionContext;
-	extension: { id: string; path: string; };
+export class LuaProjectInitializer {
 	workspaceAnnotationsFolder: string;
 
-	constructor(context: vscode.ExtensionContext) {
-		this.context = context;
-		this.extension = {
-			id: context.extension.id,
-			path: context.extension.extensionPath,
-		};
+	constructor() {
 		this.workspaceAnnotationsFolder = config.defoldAnnotationsFolder;
 	}
 
 	async run() {
-		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`, '/.idea', '/.vscode'], '.defignore'/* filename */); // build server to ignore
-		await appendLinesIntoFileOrCreateFile([`/${config.defoldAnnotationsFolder}`], '.gitignore'/* filename */);
+		// for build server to ignore those folders
+		await appendLinesIntoFileOrCreateFile({
+			path: '.defignore',
+			lines: [`/${config.defoldAnnotationsFolder}`, '/.idea', '/.vscode'],
+		});
+		await appendLinesIntoFileOrCreateFile({
+			path: '.gitignore',
+			lines: [`/${config.defoldAnnotationsFolder}`],
+		});
 		// add recommended workspace settings
 		await this.initWorkspaceSettingsForDefold();
 	}
@@ -37,29 +34,15 @@ export class ConfigInitializer {
 	}
 }
 
-async function appendLinesIntoFileOrCreateFile(lines: string[], filename: string) {
-	const defignoreContent = await readWorkspaceFile(filename);
+async function appendLinesIntoFileOrCreateFile({ path, lines }: { path: string, lines: string[] }) {
+	const defignoreContent = await readWorkspaceFile(path);
 	const defignoreLines = defignoreContent && defignoreContent.split(/\r\n|\r|\n/) || [];
 	lines.forEach(pattern => {
 		if (!defignoreLines.includes(pattern)) {
 			defignoreLines.push(pattern);
 		}
 	});
-	await saveWorkspaceFile(filename, defignoreLines.join('\n'));
-}
-
-async function copyFolder(sourceFolder: string, destFolder: string) {
-    await fs.mkdir(destFolder, { recursive: true });
-    let entries = await fs.readdir(sourceFolder, { withFileTypes: true });
-
-    for (let entry of entries) {
-        let srcPath = path.join(sourceFolder, entry.name);
-        let destPath = path.join(destFolder, entry.name);
-
-        entry.isDirectory() ?
-            await copyFolder(srcPath, destPath) :
-            await fs.copyFile(srcPath, destPath);
-    }
+	await saveWorkspaceFile(path, defignoreLines.join('\n'));
 }
 
 async function configureEditor(config: vscode.WorkspaceConfiguration) {
