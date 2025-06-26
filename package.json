@@ -84,6 +84,11 @@
         "category": "Defold Buddy"
       },
       {
+        "command": "vscode-defold-ide.projectRebundle",
+        "title": "[Editor] Project > Rebundle",
+        "category": "Defold Buddy"
+      },
+      {
         "command": "vscode-defold-ide.projectFetchLibraries",
         "title": "[Editor] Project > Fetch Libraries",
         "category": "Defold Buddy"
