@@ -8,6 +8,7 @@ import { registerCreateGameObjectCommand } from './commands/create-game-object-c
 import { registerCreateGuiCommand } from './commands/create-gui-command';
 import { registerCreateLuaModuleCommand } from './commands/create-lua-module-command';
 import { registerEditorProjectBuildCommand } from './commands/editor-project-build-command';
+import { registerEditorProjectRebundleCommand } from './commands/editor-project-rebundle-command';
 import { registerEditorHotReloadCommand } from './commands/editor-hot-reload-command';
 import { registerUnzipProjectAssetsCommand } from './commands/extract-project-dependencies-command';
 import { registerEditorProjectFetchLibrariesCommand } from './commands/editor-project-fetch-libraries-command';
@@ -72,6 +73,7 @@ function registerCommands(context: vscode.ExtensionContext) {
 
 function registerEditorCommands(context: vscode.ExtensionContext) {
 	registerEditorProjectBuildCommand(context);
+	registerEditorProjectRebundleCommand(context);
 	registerEditorProjectFetchLibrariesCommand(context);
 	registerEditorDebugStartOrAttachCommand(context);
 	registerEditorHotReloadCommand(context);
