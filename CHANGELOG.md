@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [1.6.0] - 2025-06-05
+- `ADD` Add "[Editor] Project > Rebundle" command
+
 ## [1.5.3] - 2024-10-07
 - `ADD` Project initializer for Teal
 
